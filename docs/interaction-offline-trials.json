@@ -1,0 +1,1384 @@
+{
+  "outcomes": [
+    {
+      "id": 1,
+      "defaultPassed": false,
+      "solutionPassed": true,
+      "score": "100 / 100",
+      "sampledJobs": [
+        10,
+        5
+      ],
+      "activeDefault": [
+        {
+          "id": "completed-cohort-0",
+          "landmark": "dock",
+          "action": "arrive",
+          "physicalLandmark": "dock",
+          "stage": "arriving"
+        },
+        {
+          "id": "completed-cohort-1",
+          "landmark": "dock",
+          "action": "arrive",
+          "physicalLandmark": "dock",
+          "stage": "arriving"
+        },
+        {
+          "id": "completed-cohort-2",
+          "landmark": "dock",
+          "action": "arrive",
+          "physicalLandmark": "dock",
+          "stage": "arriving"
+        },
+        {
+          "id": "completed-cohort-3",
+          "landmark": "dock",
+          "action": "arrive",
+          "physicalLandmark": "dock",
+          "stage": "arriving"
+        },
+        {
+          "id": "completed-cohort-4",
+          "landmark": "dock",
+          "action": "arrive",
+          "physicalLandmark": "dock",
+          "stage": "arriving"
+        },
+        {
+          "id": "rejected-cohort-0",
+          "landmark": "dock",
+          "action": "arrive",
+          "physicalLandmark": "dock",
+          "stage": "arriving"
+        },
+        {
+          "id": "rejected-cohort-1",
+          "landmark": "dock",
+          "action": "arrive",
+          "physicalLandmark": "dock",
+          "stage": "arriving"
+        },
+        {
+          "id": "rejected-cohort-2",
+          "landmark": "dock",
+          "action": "arrive",
+          "physicalLandmark": "dock",
+          "stage": "arriving"
+        },
+        {
+          "id": "rejected-cohort-3",
+          "landmark": "dock",
+          "action": "arrive",
+          "physicalLandmark": "dock",
+          "stage": "arriving"
+        },
+        {
+          "id": "rejected-cohort-4",
+          "landmark": "dock",
+          "action": "arrive",
+          "physicalLandmark": "dock",
+          "stage": "arriving"
+        }
+      ],
+      "activeSolution": [
+        {
+          "id": "completed-cohort-0",
+          "landmark": "dock",
+          "action": "arrive",
+          "physicalLandmark": "dock",
+          "stage": "arriving"
+        },
+        {
+          "id": "completed-cohort-1",
+          "landmark": "dock",
+          "action": "arrive",
+          "physicalLandmark": "dock",
+          "stage": "arriving"
+        },
+        {
+          "id": "completed-cohort-2",
+          "landmark": "dock",
+          "action": "arrive",
+          "physicalLandmark": "dock",
+          "stage": "arriving"
+        },
+        {
+          "id": "completed-cohort-3",
+          "landmark": "dock",
+          "action": "arrive",
+          "physicalLandmark": "dock",
+          "stage": "arriving"
+        },
+        {
+          "id": "completed-cohort-4",
+          "landmark": "dock",
+          "action": "arrive",
+          "physicalLandmark": "dock",
+          "stage": "arriving"
+        }
+      ],
+      "failure": "overload",
+      "blockingIntersections": 0,
+      "reservationConflicts": 0,
+      "maxGeometryDisposeListeners": 1,
+      "playBelowStage": true
+    },
+    {
+      "id": 2,
+      "defaultPassed": false,
+      "solutionPassed": true,
+      "score": "100 / 100",
+      "sampledJobs": [
+        3,
+        3
+      ],
+      "activeDefault": [
+        {
+          "id": "estimate-0",
+          "landmark": "telescope",
+          "action": "measure",
+          "physicalLandmark": "telescope",
+          "stage": "working"
+        }
+      ],
+      "activeSolution": [
+        {
+          "id": "estimate-0",
+          "landmark": "telescope",
+          "action": "calculate",
+          "physicalLandmark": "telescope",
+          "stage": "working"
+        }
+      ],
+      "failure": "capacity-error",
+      "blockingIntersections": 0,
+      "reservationConflicts": 0,
+      "maxGeometryDisposeListeners": 1,
+      "playBelowStage": true
+    },
+    {
+      "id": 3,
+      "defaultPassed": false,
+      "solutionPassed": true,
+      "score": "100 / 100",
+      "sampledJobs": [
+        4,
+        4
+      ],
+      "activeDefault": [
+        {
+          "id": "decision-0",
+          "landmark": "scope",
+          "action": "arrive",
+          "physicalLandmark": "exit",
+          "stage": "walking"
+        }
+      ],
+      "activeSolution": [
+        {
+          "id": "decision-0",
+          "landmark": "scope",
+          "action": "arrive",
+          "physicalLandmark": "exit",
+          "stage": "walking"
+        }
+      ],
+      "failure": "incomplete-design",
+      "blockingIntersections": 0,
+      "reservationConflicts": 0,
+      "maxGeometryDisposeListeners": 1,
+      "playBelowStage": true
+    },
+    {
+      "id": 4,
+      "defaultPassed": false,
+      "solutionPassed": true,
+      "score": "100 / 100",
+      "sampledJobs": [
+        10,
+        10
+      ],
+      "activeDefault": [
+        {
+          "id": "request-0",
+          "landmark": "service",
+          "action": "complete",
+          "physicalLandmark": "exit",
+          "stage": "exited"
+        },
+        {
+          "id": "request-1",
+          "landmark": "service",
+          "action": "complete",
+          "physicalLandmark": "exit",
+          "stage": "exited"
+        },
+        {
+          "id": "request-6",
+          "landmark": "service",
+          "action": "complete",
+          "physicalLandmark": "gates",
+          "stage": "walking"
+        },
+        {
+          "id": "request-7",
+          "landmark": "service",
+          "action": "complete",
+          "physicalLandmark": "gates",
+          "stage": "walking"
+        }
+      ],
+      "activeSolution": [
+        {
+          "id": "request-0",
+          "landmark": "service",
+          "action": "complete",
+          "physicalLandmark": "exit",
+          "stage": "exited"
+        },
+        {
+          "id": "request-1",
+          "landmark": "service",
+          "action": "complete",
+          "physicalLandmark": "exit",
+          "stage": "exited"
+        },
+        {
+          "id": "request-6",
+          "landmark": "service",
+          "action": "complete",
+          "physicalLandmark": "gates",
+          "stage": "walking"
+        },
+        {
+          "id": "request-7",
+          "landmark": "service",
+          "action": "complete",
+          "physicalLandmark": "gates",
+          "stage": "walking"
+        }
+      ],
+      "failure": "flood",
+      "blockingIntersections": 0,
+      "reservationConflicts": 0,
+      "maxGeometryDisposeListeners": 1,
+      "playBelowStage": true
+    },
+    {
+      "id": 5,
+      "defaultPassed": false,
+      "solutionPassed": true,
+      "score": "100 / 100",
+      "sampledJobs": [
+        10,
+        10
+      ],
+      "activeDefault": [
+        {
+          "id": "key-0",
+          "landmark": "compass",
+          "action": "hash",
+          "physicalLandmark": "compass",
+          "stage": "walking"
+        },
+        {
+          "id": "key-2",
+          "landmark": "compass",
+          "action": "hash",
+          "physicalLandmark": "compass",
+          "stage": "walking"
+        },
+        {
+          "id": "key-3",
+          "landmark": "compass",
+          "action": "hash",
+          "physicalLandmark": "compass",
+          "stage": "walking"
+        }
+      ],
+      "activeSolution": [
+        {
+          "id": "key-2",
+          "landmark": "compass",
+          "action": "hash",
+          "physicalLandmark": "compass",
+          "stage": "walking"
+        },
+        {
+          "id": "key-12",
+          "landmark": "compass",
+          "action": "hash",
+          "physicalLandmark": "compass",
+          "stage": "walking"
+        },
+        {
+          "id": "key-15",
+          "landmark": "compass",
+          "action": "hash",
+          "physicalLandmark": "compass",
+          "stage": "walking"
+        },
+        {
+          "id": "key-25",
+          "landmark": "compass",
+          "action": "hash",
+          "physicalLandmark": "compass",
+          "stage": "walking"
+        },
+        {
+          "id": "key-26",
+          "landmark": "compass",
+          "action": "hash",
+          "physicalLandmark": "compass",
+          "stage": "walking"
+        },
+        {
+          "id": "key-30",
+          "landmark": "compass",
+          "action": "hash",
+          "physicalLandmark": "compass",
+          "stage": "walking"
+        },
+        {
+          "id": "key-45",
+          "landmark": "compass",
+          "action": "hash",
+          "physicalLandmark": "compass",
+          "stage": "walking"
+        },
+        {
+          "id": "key-51",
+          "landmark": "compass",
+          "action": "hash",
+          "physicalLandmark": "compass",
+          "stage": "walking"
+        },
+        {
+          "id": "key-69",
+          "landmark": "compass",
+          "action": "hash",
+          "physicalLandmark": "compass",
+          "stage": "walking"
+        },
+        {
+          "id": "key-72",
+          "landmark": "compass",
+          "action": "hash",
+          "physicalLandmark": "compass",
+          "stage": "walking"
+        }
+      ],
+      "failure": "unstable-migration",
+      "blockingIntersections": 0,
+      "reservationConflicts": 0,
+      "maxGeometryDisposeListeners": 1,
+      "playBelowStage": true
+    },
+    {
+      "id": 6,
+      "defaultPassed": false,
+      "solutionPassed": true,
+      "score": "100 / 100",
+      "sampledJobs": [
+        4,
+        5
+      ],
+      "activeDefault": [
+        {
+          "id": "majority-write",
+          "landmark": "partition",
+          "action": "partition",
+          "physicalLandmark": "partition",
+          "stage": "working"
+        },
+        {
+          "id": "isolated-write",
+          "landmark": "partition",
+          "action": "partition",
+          "physicalLandmark": "partition",
+          "stage": "walking"
+        },
+        {
+          "id": "majority-read",
+          "landmark": "partition",
+          "action": "partition",
+          "physicalLandmark": "partition",
+          "stage": "walking"
+        }
+      ],
+      "activeSolution": [
+        {
+          "id": "majority-write",
+          "landmark": "partition",
+          "action": "partition",
+          "physicalLandmark": "partition",
+          "stage": "working"
+        },
+        {
+          "id": "isolated-write",
+          "landmark": "partition",
+          "action": "partition",
+          "physicalLandmark": "partition",
+          "stage": "walking"
+        },
+        {
+          "id": "majority-read",
+          "landmark": "partition",
+          "action": "partition",
+          "physicalLandmark": "partition",
+          "stage": "walking"
+        }
+      ],
+      "failure": "partition",
+      "blockingIntersections": 0,
+      "reservationConflicts": 0,
+      "maxGeometryDisposeListeners": 1,
+      "playBelowStage": true
+    },
+    {
+      "id": 7,
+      "defaultPassed": false,
+      "solutionPassed": true,
+      "score": "100 / 100",
+      "sampledJobs": [
+        8,
+        8
+      ],
+      "activeDefault": [
+        {
+          "id": "stamp-0-0",
+          "landmark": "assembly",
+          "action": "complete",
+          "physicalLandmark": "exit",
+          "stage": "exited"
+        },
+        {
+          "id": "stamp-0-1",
+          "landmark": "assembly",
+          "action": "lost",
+          "physicalLandmark": "exit",
+          "stage": "walking"
+        },
+        {
+          "id": "stamp-0-2",
+          "landmark": "assembly",
+          "action": "lost",
+          "physicalLandmark": "assembly",
+          "stage": "walking"
+        },
+        {
+          "id": "stamp-0-3",
+          "landmark": "assembly",
+          "action": "stamp",
+          "physicalLandmark": "assembly",
+          "stage": "walking"
+        }
+      ],
+      "activeSolution": [
+        {
+          "id": "stamp-0-0",
+          "landmark": "assembly",
+          "action": "complete",
+          "physicalLandmark": "exit",
+          "stage": "exited"
+        },
+        {
+          "id": "stamp-0-1",
+          "landmark": "assembly",
+          "action": "complete",
+          "physicalLandmark": "exit",
+          "stage": "walking"
+        },
+        {
+          "id": "stamp-0-2",
+          "landmark": "assembly",
+          "action": "complete",
+          "physicalLandmark": "assembly",
+          "stage": "walking"
+        },
+        {
+          "id": "stamp-0-3",
+          "landmark": "assembly",
+          "action": "complete",
+          "physicalLandmark": "assembly",
+          "stage": "walking"
+        }
+      ],
+      "failure": "clock-foundry",
+      "blockingIntersections": 0,
+      "reservationConflicts": 0,
+      "maxGeometryDisposeListeners": 1,
+      "playBelowStage": true
+    },
+    {
+      "id": 8,
+      "defaultPassed": false,
+      "solutionPassed": true,
+      "score": "100 / 100",
+      "sampledJobs": [
+        10,
+        10
+      ],
+      "activeDefault": [
+        {
+          "id": "link-0",
+          "landmark": "redirect",
+          "action": "lost",
+          "physicalLandmark": "redirect",
+          "stage": "walking"
+        },
+        {
+          "id": "link-1",
+          "landmark": "redirect",
+          "action": "lost",
+          "physicalLandmark": "archive",
+          "stage": "walking"
+        },
+        {
+          "id": "link-2",
+          "landmark": "redirect",
+          "action": "lost",
+          "physicalLandmark": "archive",
+          "stage": "walking"
+        },
+        {
+          "id": "link-3",
+          "landmark": "redirect",
+          "action": "complete",
+          "physicalLandmark": "archive",
+          "stage": "walking"
+        },
+        {
+          "id": "link-4",
+          "landmark": "redirect",
+          "action": "lost",
+          "physicalLandmark": "redirect",
+          "stage": "walking"
+        },
+        {
+          "id": "link-5",
+          "landmark": "redirect",
+          "action": "lost",
+          "physicalLandmark": "redirect",
+          "stage": "walking"
+        },
+        {
+          "id": "link-6",
+          "landmark": "redirect",
+          "action": "lost",
+          "physicalLandmark": "redirect",
+          "stage": "walking"
+        },
+        {
+          "id": "link-7",
+          "landmark": "redirect",
+          "action": "arrive",
+          "physicalLandmark": "redirect",
+          "stage": "walking"
+        },
+        {
+          "id": "link-118",
+          "landmark": "archive",
+          "action": "persist",
+          "physicalLandmark": "archive",
+          "stage": "working"
+        },
+        {
+          "id": "link-119",
+          "landmark": "archive",
+          "action": "persist",
+          "physicalLandmark": "archive",
+          "stage": "working"
+        }
+      ],
+      "activeSolution": [
+        {
+          "id": "link-0",
+          "landmark": "redirect",
+          "action": "complete",
+          "physicalLandmark": "redirect",
+          "stage": "walking"
+        },
+        {
+          "id": "link-1",
+          "landmark": "redirect",
+          "action": "complete",
+          "physicalLandmark": "redirect",
+          "stage": "walking"
+        },
+        {
+          "id": "link-2",
+          "landmark": "redirect",
+          "action": "complete",
+          "physicalLandmark": "redirect",
+          "stage": "walking"
+        },
+        {
+          "id": "link-3",
+          "landmark": "redirect",
+          "action": "complete",
+          "physicalLandmark": "redirect",
+          "stage": "walking"
+        },
+        {
+          "id": "link-4",
+          "landmark": "redirect",
+          "action": "complete",
+          "physicalLandmark": "redirect",
+          "stage": "walking"
+        },
+        {
+          "id": "link-5",
+          "landmark": "redirect",
+          "action": "complete",
+          "physicalLandmark": "redirect",
+          "stage": "walking"
+        },
+        {
+          "id": "link-6",
+          "landmark": "redirect",
+          "action": "complete",
+          "physicalLandmark": "redirect",
+          "stage": "walking"
+        },
+        {
+          "id": "link-7",
+          "landmark": "redirect",
+          "action": "complete",
+          "physicalLandmark": "redirect",
+          "stage": "walking"
+        },
+        {
+          "id": "link-118",
+          "landmark": "archive",
+          "action": "persist",
+          "physicalLandmark": "archive",
+          "stage": "working"
+        },
+        {
+          "id": "link-119",
+          "landmark": "archive",
+          "action": "persist",
+          "physicalLandmark": "archive",
+          "stage": "working"
+        }
+      ],
+      "failure": "shortcut-collision",
+      "blockingIntersections": 0,
+      "reservationConflicts": 0,
+      "maxGeometryDisposeListeners": 1,
+      "playBelowStage": true
+    },
+    {
+      "id": 9,
+      "defaultPassed": false,
+      "solutionPassed": true,
+      "score": "100 / 100",
+      "sampledJobs": [
+        10,
+        10
+      ],
+      "activeDefault": [
+        {
+          "id": "crawl-a/start",
+          "landmark": "archive",
+          "action": "complete",
+          "physicalLandmark": "archive",
+          "stage": "walking"
+        },
+        {
+          "id": "crawl-a/map",
+          "landmark": "archive",
+          "action": "complete",
+          "physicalLandmark": "robots",
+          "stage": "walking"
+        },
+        {
+          "id": "crawl-b/news",
+          "landmark": "archive",
+          "action": "complete",
+          "physicalLandmark": "robots",
+          "stage": "walking"
+        },
+        {
+          "id": "crawl-a/private",
+          "landmark": "archive",
+          "action": "complete",
+          "physicalLandmark": "robots",
+          "stage": "walking"
+        },
+        {
+          "id": "crawl-b/mirror",
+          "landmark": "archive",
+          "action": "complete",
+          "physicalLandmark": "frontier",
+          "stage": "walking"
+        },
+        {
+          "id": "crawl-c/port",
+          "landmark": "robots",
+          "action": "fetch",
+          "physicalLandmark": "frontier",
+          "stage": "walking"
+        }
+      ],
+      "activeSolution": [
+        {
+          "id": "crawl-a/start",
+          "landmark": "archive",
+          "action": "complete",
+          "physicalLandmark": "robots",
+          "stage": "walking"
+        },
+        {
+          "id": "crawl-a/map",
+          "landmark": "robots",
+          "action": "schedule",
+          "physicalLandmark": "robots",
+          "stage": "walking"
+        }
+      ],
+      "failure": "forbidden-crawl",
+      "blockingIntersections": 0,
+      "reservationConflicts": 0,
+      "maxGeometryDisposeListeners": 1,
+      "playBelowStage": true
+    },
+    {
+      "id": 10,
+      "defaultPassed": false,
+      "solutionPassed": true,
+      "score": "100 / 100",
+      "sampledJobs": [
+        10,
+        10
+      ],
+      "activeDefault": [
+        {
+          "id": "job-0",
+          "landmark": "queue",
+          "action": "lost",
+          "physicalLandmark": "exit",
+          "stage": "walking"
+        },
+        {
+          "id": "job-1",
+          "landmark": "channels",
+          "action": "complete",
+          "physicalLandmark": "queue",
+          "stage": "walking"
+        }
+      ],
+      "activeSolution": [
+        {
+          "id": "job-0",
+          "landmark": "queue",
+          "action": "retry",
+          "physicalLandmark": "queue",
+          "stage": "walking"
+        },
+        {
+          "id": "job-1",
+          "landmark": "channels",
+          "action": "complete",
+          "physicalLandmark": "channels",
+          "stage": "walking"
+        },
+        {
+          "id": "job-2",
+          "landmark": "channels",
+          "action": "complete",
+          "physicalLandmark": "channels",
+          "stage": "walking"
+        },
+        {
+          "id": "job-3",
+          "landmark": "channels",
+          "action": "provider-failure",
+          "physicalLandmark": "preferences",
+          "stage": "walking"
+        }
+      ],
+      "failure": "stalled-conveyor",
+      "blockingIntersections": 0,
+      "reservationConflicts": 0,
+      "maxGeometryDisposeListeners": 1,
+      "playBelowStage": true
+    },
+    {
+      "id": 11,
+      "defaultPassed": false,
+      "solutionPassed": true,
+      "score": "100 / 100",
+      "sampledJobs": [
+        10,
+        10
+      ],
+      "activeDefault": [
+        {
+          "id": "reader-cohort-0",
+          "landmark": "inboxes",
+          "action": "read",
+          "physicalLandmark": "inboxes",
+          "stage": "working"
+        },
+        {
+          "id": "reader-cohort-1",
+          "landmark": "inboxes",
+          "action": "read",
+          "physicalLandmark": "inboxes",
+          "stage": "working"
+        },
+        {
+          "id": "reader-cohort-2",
+          "landmark": "inboxes",
+          "action": "read",
+          "physicalLandmark": "inboxes",
+          "stage": "working"
+        },
+        {
+          "id": "reader-cohort-3",
+          "landmark": "inboxes",
+          "action": "read",
+          "physicalLandmark": "inboxes",
+          "stage": "working"
+        },
+        {
+          "id": "reader-cohort-4",
+          "landmark": "inboxes",
+          "action": "read",
+          "physicalLandmark": "inboxes",
+          "stage": "working"
+        },
+        {
+          "id": "reader-cohort-5",
+          "landmark": "inboxes",
+          "action": "read",
+          "physicalLandmark": "inboxes",
+          "stage": "working"
+        },
+        {
+          "id": "reader-cohort-6",
+          "landmark": "inboxes",
+          "action": "read",
+          "physicalLandmark": "inboxes",
+          "stage": "working"
+        },
+        {
+          "id": "reader-cohort-7",
+          "landmark": "inboxes",
+          "action": "read",
+          "physicalLandmark": "inboxes",
+          "stage": "working"
+        },
+        {
+          "id": "reader-cohort-8",
+          "landmark": "inboxes",
+          "action": "read",
+          "physicalLandmark": "inboxes",
+          "stage": "working"
+        },
+        {
+          "id": "reader-cohort-9",
+          "landmark": "inboxes",
+          "action": "read",
+          "physicalLandmark": "inboxes",
+          "stage": "walking"
+        }
+      ],
+      "activeSolution": [
+        {
+          "id": "reader-cohort-0",
+          "landmark": "inboxes",
+          "action": "read",
+          "physicalLandmark": "inboxes",
+          "stage": "working"
+        },
+        {
+          "id": "reader-cohort-1",
+          "landmark": "inboxes",
+          "action": "read",
+          "physicalLandmark": "inboxes",
+          "stage": "working"
+        },
+        {
+          "id": "reader-cohort-2",
+          "landmark": "inboxes",
+          "action": "read",
+          "physicalLandmark": "inboxes",
+          "stage": "working"
+        },
+        {
+          "id": "reader-cohort-3",
+          "landmark": "inboxes",
+          "action": "read",
+          "physicalLandmark": "inboxes",
+          "stage": "working"
+        },
+        {
+          "id": "reader-cohort-4",
+          "landmark": "inboxes",
+          "action": "read",
+          "physicalLandmark": "inboxes",
+          "stage": "working"
+        },
+        {
+          "id": "reader-cohort-5",
+          "landmark": "inboxes",
+          "action": "read",
+          "physicalLandmark": "inboxes",
+          "stage": "working"
+        },
+        {
+          "id": "reader-cohort-6",
+          "landmark": "inboxes",
+          "action": "read",
+          "physicalLandmark": "inboxes",
+          "stage": "working"
+        },
+        {
+          "id": "reader-cohort-7",
+          "landmark": "inboxes",
+          "action": "read",
+          "physicalLandmark": "inboxes",
+          "stage": "working"
+        },
+        {
+          "id": "reader-cohort-8",
+          "landmark": "inboxes",
+          "action": "read",
+          "physicalLandmark": "inboxes",
+          "stage": "working"
+        },
+        {
+          "id": "reader-cohort-9",
+          "landmark": "inboxes",
+          "action": "read",
+          "physicalLandmark": "inboxes",
+          "stage": "walking"
+        }
+      ],
+      "failure": "celebrity-crowd",
+      "blockingIntersections": 0,
+      "reservationConflicts": 0,
+      "maxGeometryDisposeListeners": 1,
+      "playBelowStage": true
+    },
+    {
+      "id": 12,
+      "defaultPassed": false,
+      "solutionPassed": true,
+      "score": "100 / 100",
+      "sampledJobs": [
+        8,
+        8
+      ],
+      "activeDefault": [
+        {
+          "id": "message-1",
+          "landmark": "connection",
+          "action": "ack",
+          "physicalLandmark": "connection",
+          "stage": "acknowledging"
+        },
+        {
+          "id": "message-2",
+          "landmark": "connection",
+          "action": "ack",
+          "physicalLandmark": "connection",
+          "stage": "acknowledging"
+        },
+        {
+          "id": "message-3",
+          "landmark": "connection",
+          "action": "ack",
+          "physicalLandmark": "connection",
+          "stage": "acknowledging"
+        },
+        {
+          "id": "message-4",
+          "landmark": "connection",
+          "action": "send",
+          "physicalLandmark": "connection",
+          "stage": "working"
+        },
+        {
+          "id": "message-5",
+          "landmark": "connection",
+          "action": "send",
+          "physicalLandmark": "connection",
+          "stage": "working"
+        },
+        {
+          "id": "message-6",
+          "landmark": "connection",
+          "action": "send",
+          "physicalLandmark": "connection",
+          "stage": "working"
+        },
+        {
+          "id": "message-7",
+          "landmark": "connection",
+          "action": "send",
+          "physicalLandmark": "connection",
+          "stage": "working"
+        },
+        {
+          "id": "message-8",
+          "landmark": "connection",
+          "action": "send",
+          "physicalLandmark": "connection",
+          "stage": "working"
+        }
+      ],
+      "activeSolution": [
+        {
+          "id": "message-1",
+          "landmark": "history",
+          "action": "persist",
+          "physicalLandmark": "history",
+          "stage": "working"
+        },
+        {
+          "id": "message-2",
+          "landmark": "history",
+          "action": "persist",
+          "physicalLandmark": "history",
+          "stage": "walking"
+        },
+        {
+          "id": "message-3",
+          "landmark": "history",
+          "action": "persist",
+          "physicalLandmark": "history",
+          "stage": "walking"
+        },
+        {
+          "id": "message-4",
+          "landmark": "history",
+          "action": "persist",
+          "physicalLandmark": "history",
+          "stage": "walking"
+        },
+        {
+          "id": "message-5",
+          "landmark": "history",
+          "action": "persist",
+          "physicalLandmark": "history",
+          "stage": "walking"
+        },
+        {
+          "id": "message-6",
+          "landmark": "history",
+          "action": "persist",
+          "physicalLandmark": "history",
+          "stage": "walking"
+        },
+        {
+          "id": "message-7",
+          "landmark": "history",
+          "action": "persist",
+          "physicalLandmark": "history",
+          "stage": "walking"
+        },
+        {
+          "id": "message-8",
+          "landmark": "history",
+          "action": "persist",
+          "physicalLandmark": "history",
+          "stage": "walking"
+        }
+      ],
+      "failure": "broken-connection",
+      "blockingIntersections": 0,
+      "reservationConflicts": 0,
+      "maxGeometryDisposeListeners": 1,
+      "playBelowStage": true
+    },
+    {
+      "id": 13,
+      "defaultPassed": false,
+      "solutionPassed": true,
+      "score": "100 / 100",
+      "sampledJobs": [
+        1,
+        1
+      ],
+      "activeDefault": [
+        {
+          "id": "query",
+          "landmark": "aggregator",
+          "action": "snapshot",
+          "physicalLandmark": "aggregator",
+          "stage": "working"
+        }
+      ],
+      "activeSolution": [
+        {
+          "id": "query",
+          "landmark": "aggregator",
+          "action": "snapshot",
+          "physicalLandmark": "aggregator",
+          "stage": "working"
+        }
+      ],
+      "failure": "stale-prefix",
+      "blockingIntersections": 0,
+      "reservationConflicts": 0,
+      "maxGeometryDisposeListeners": 1,
+      "playBelowStage": true
+    },
+    {
+      "id": 14,
+      "defaultPassed": false,
+      "solutionPassed": true,
+      "score": "100 / 100",
+      "sampledJobs": [
+        5,
+        7
+      ],
+      "activeDefault": [
+        {
+          "id": "upload",
+          "landmark": "upload",
+          "action": "work",
+          "physicalLandmark": "upload",
+          "stage": "walking"
+        },
+        {
+          "id": "probe",
+          "landmark": "upload",
+          "action": "schedule",
+          "physicalLandmark": "upload",
+          "stage": "working"
+        },
+        {
+          "id": "encode-3.5",
+          "landmark": "upload",
+          "action": "schedule",
+          "physicalLandmark": "upload",
+          "stage": "working"
+        },
+        {
+          "id": "manifest",
+          "landmark": "upload",
+          "action": "schedule",
+          "physicalLandmark": "upload",
+          "stage": "working"
+        }
+      ],
+      "activeSolution": [
+        {
+          "id": "upload",
+          "landmark": "upload",
+          "action": "ack",
+          "physicalLandmark": "exit",
+          "stage": "walking"
+        },
+        {
+          "id": "probe",
+          "landmark": "transcode",
+          "action": "work",
+          "physicalLandmark": "transcode",
+          "stage": "walking"
+        },
+        {
+          "id": "encode-0.6",
+          "landmark": "upload",
+          "action": "queue",
+          "physicalLandmark": "upload",
+          "stage": "waiting"
+        },
+        {
+          "id": "encode-1.6",
+          "landmark": "upload",
+          "action": "queue",
+          "physicalLandmark": "upload",
+          "stage": "waiting"
+        },
+        {
+          "id": "encode-3.5",
+          "landmark": "upload",
+          "action": "queue",
+          "physicalLandmark": "upload",
+          "stage": "waiting"
+        },
+        {
+          "id": "manifest",
+          "landmark": "upload",
+          "action": "queue",
+          "physicalLandmark": "upload",
+          "stage": "waiting"
+        }
+      ],
+      "failure": "stalled-cinema",
+      "blockingIntersections": 0,
+      "reservationConflicts": 0,
+      "maxGeometryDisposeListeners": 1,
+      "playBelowStage": true
+    },
+    {
+      "id": 15,
+      "defaultPassed": false,
+      "solutionPassed": true,
+      "score": "100 / 100",
+      "sampledJobs": [
+        10,
+        4
+      ],
+      "activeDefault": [
+        {
+          "id": "revision-0",
+          "landmark": "blocks",
+          "action": "compare",
+          "physicalLandmark": "blocks",
+          "stage": "working"
+        },
+        {
+          "id": "revision-1",
+          "landmark": "blocks",
+          "action": "compare",
+          "physicalLandmark": "blocks",
+          "stage": "working"
+        },
+        {
+          "id": "chunk-0",
+          "landmark": "devices",
+          "action": "ack",
+          "physicalLandmark": "blocks",
+          "stage": "walking"
+        },
+        {
+          "id": "chunk-1",
+          "landmark": "devices",
+          "action": "queue",
+          "physicalLandmark": "devices",
+          "stage": "waiting"
+        },
+        {
+          "id": "chunk-2",
+          "landmark": "devices",
+          "action": "queue",
+          "physicalLandmark": "devices",
+          "stage": "waiting"
+        },
+        {
+          "id": "chunk-3",
+          "landmark": "devices",
+          "action": "queue",
+          "physicalLandmark": "devices",
+          "stage": "waiting"
+        },
+        {
+          "id": "chunk-4",
+          "landmark": "devices",
+          "action": "queue",
+          "physicalLandmark": "devices",
+          "stage": "waiting"
+        },
+        {
+          "id": "chunk-5",
+          "landmark": "devices",
+          "action": "queue",
+          "physicalLandmark": "devices",
+          "stage": "waiting"
+        },
+        {
+          "id": "chunk-6",
+          "landmark": "devices",
+          "action": "queue",
+          "physicalLandmark": "devices",
+          "stage": "waiting"
+        },
+        {
+          "id": "chunk-7",
+          "landmark": "devices",
+          "action": "queue",
+          "physicalLandmark": "devices",
+          "stage": "waiting"
+        }
+      ],
+      "activeSolution": [
+        {
+          "id": "revision-0",
+          "landmark": "blocks",
+          "action": "compare",
+          "physicalLandmark": "blocks",
+          "stage": "working"
+        },
+        {
+          "id": "revision-1",
+          "landmark": "blocks",
+          "action": "compare",
+          "physicalLandmark": "blocks",
+          "stage": "walking"
+        }
+      ],
+      "failure": "lost-blocks",
+      "blockingIntersections": 0,
+      "reservationConflicts": 0,
+      "maxGeometryDisposeListeners": 1,
+      "playBelowStage": true
+    },
+    {
+      "id": 16,
+      "defaultPassed": false,
+      "solutionPassed": true,
+      "score": "100 / 100",
+      "sampledJobs": [
+        4,
+        4
+      ],
+      "activeDefault": [
+        {
+          "id": "lost-jobs-0",
+          "landmark": "queue",
+          "action": "volatile",
+          "physicalLandmark": "queue",
+          "stage": "walking"
+        },
+        {
+          "id": "lost-jobs-1",
+          "landmark": "queue",
+          "action": "volatile",
+          "physicalLandmark": "replicas",
+          "stage": "walking"
+        }
+      ],
+      "activeSolution": [
+        {
+          "id": "completed-jobs-0",
+          "landmark": "queue",
+          "action": "persist",
+          "physicalLandmark": "queue",
+          "stage": "walking"
+        },
+        {
+          "id": "completed-jobs-1",
+          "landmark": "queue",
+          "action": "persist",
+          "physicalLandmark": "replicas",
+          "stage": "walking"
+        }
+      ],
+      "failure": "region-collapse",
+      "blockingIntersections": 0,
+      "reservationConflicts": 0,
+      "maxGeometryDisposeListeners": 1,
+      "playBelowStage": true
+    }
+  ],
+  "errors": [],
+  "requests": [],
+  "stars": "48 / 48 beacon stars",
+  "storage": {
+    "systems-islands-progress": "{\"version\":1,\"stars\":{\"1\":3,\"2\":3,\"3\":3,\"4\":3,\"5\":3,\"6\":3,\"7\":3,\"8\":3,\"9\":3,\"10\":3,\"11\":3,\"12\":3,\"13\":3,\"14\":3,\"15\":3,\"16\":3},\"settings\":{\"sound\":false,\"reducedMotion\":false}}"
+  },
+  "reloadedStorage": {
+    "systems-islands-progress": "{\"version\":1,\"stars\":{\"1\":3,\"2\":3,\"3\":3,\"4\":3,\"5\":3,\"6\":3,\"7\":3,\"8\":3,\"9\":3,\"10\":3,\"11\":3,\"12\":3,\"13\":3,\"14\":3,\"15\":3,\"16\":3},\"settings\":{\"sound\":false,\"reducedMotion\":false}}"
+  },
+  "starsAfterReload": 48,
+  "offline": true,
+  "location": "file:///[project]/dist/systems-islands-offline.html"
+}

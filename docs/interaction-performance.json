@@ -1,0 +1,70 @@
+{
+  "method": "8-second chart samples; same Chrome context at 1280x800 and DPR 1. RAF callback elapsed time includes WebGL submission, not CPU-only or GPU timing. Visible people may briefly vary during entrance/exit lifecycle.",
+  "results": [
+    {
+      "release": "v1.0.1",
+      "viewport": [
+        1280,
+        800
+      ],
+      "dpr": 1,
+      "hidden": false,
+      "frames": 240,
+      "duration": 8003.100000023842,
+      "drawCalls": {
+        "median": 920,
+        "min": 899,
+        "max": 920
+      },
+      "frameGapMs": {
+        "median": 33.30000000000109,
+        "p95": 33.400000000000546
+      },
+      "callbackMs": {
+        "median": 2.199999988079071,
+        "p95": 2.400000035762787
+      },
+      "scene": {
+        "visiblePeople": 31,
+        "navPaths": 180,
+        "blockingIntersections": 0,
+        "chartActorCapacity": 32
+      }
+    },
+    {
+      "release": "v1.1.0",
+      "viewport": [
+        1280,
+        800
+      ],
+      "dpr": 1,
+      "hidden": false,
+      "frames": 240,
+      "duration": 8002.600000023842,
+      "drawCalls": {
+        "median": 920,
+        "min": 899,
+        "max": 920
+      },
+      "frameGapMs": {
+        "median": 33.30000000000109,
+        "p95": 33.400000000001455
+      },
+      "callbackMs": {
+        "median": 2.300000011920929,
+        "p95": 2.699999988079071
+      },
+      "scene": {
+        "visiblePeople": 32,
+        "navPaths": 180,
+        "blockingIntersections": 0,
+        "chartActorCapacity": 32
+      }
+    }
+  ],
+  "limits": [
+    "No physical-phone GPU measurement",
+    "Rendering retains the intentional 30 fps cap",
+    "Callback differences below a millisecond do not establish a meaningful speed change"
+  ]
+}

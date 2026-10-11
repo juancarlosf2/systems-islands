@@ -1,0 +1,23 @@
+{
+  "screenshots": [
+    {
+      "chapter": 1,
+      "width": 430,
+      "height": 1050,
+      "path": "output/screens/chapter-01-phone.png",
+      "paused": true,
+      "playBelowStage": true,
+      "horizontalOverflow": false
+    },
+    {
+      "chapter": 2,
+      "width": 430,
+      "height": 1050,
+      "path": "output/screens/chapter-02-phone.png",
+      "paused": true,
+      "playBelowStage": true,
+      "horizontalOverflow": false
+    }
+  ],
+  "physicalPhoneTest": false
+}

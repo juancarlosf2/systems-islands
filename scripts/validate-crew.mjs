@@ -4,6 +4,9 @@ import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
+import {compileCrewPlayback} from '../src/rendering/crewPlayback.js';
+import {levels} from '../src/game/levels.js';
+import {evaluateLevel} from '../src/game/simulation.js';
 const root=fileURLToPath(new URL('..',import.meta.url));
 const source=await fs.readFile(`${root}/src/World.jsx`,'utf8');
 assert.ok(source.includes('function createCrewNavigation(')&&source.includes('function animateWorld('),'Production navigation/animation helpers exist');
@@ -27,6 +30,14 @@ for(let id=1;id<=16;id++){
  const bytes=await fs.readFile(`${root}/public/models/chapter-${String(id).padStart(2,'0')}.glb`);
  const {scene}=await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),'');scene.userData.chapterId=id;
  const nav=create(scene),nodes=[],targets=new Set();scene.traverse(o=>{nodes.push({object:o,position:o.position.clone(),rotation:o.rotation.clone()});if(o.userData.crewObstacle?.canTip)targets.add(o.userData.landmark);});
+ // Compile the same production paths used by both baseline and repaired trials.
+ for(const config of [levels[id-1].defaultConfig,levels[id-1].solution])compileCrewPlayback(evaluateLevel(id,config).trace,nav);
+ // Explicitly cover the unavailable-site refuge and queue/exit paths as well.
+ const refuge=nav.getSlots('refuge'),entrance=nav.getSlots('entrance'),exit=nav.getSlots('exit');
+ for(let i=0;i<10;i++){nav.getPath(entrance[i],refuge[i]);nav.getPath(refuge[i],exit[i]);}
+ const auditedPaths=[...nav.routes.flatMap(route=>[route.enter,route.leave]),...nav.paths.values()];
+ const allSlots=[...nav.slots.values()].flat();
+ assert.equal(new Set(allSlots.map(slot=>`${slot.point.x}:${slot.point.z}`)).size,allSlots.length,`Chapter ${id} distinct reservations`);
  const dynamic={actors:[],nodes,model:scene,chapterId:id,start:0,effects:[],damage:{severity:1,type:'region-collapse',keys:[...targets]}};
  let collisions=0;const examples=[];
  for(let phase=0;phase<=20;phase++){
@@ -37,9 +48,9 @@ for(let id=1;id<=16;id++){
    for(let i=0;i<positions.count;i++)vertices.push(new THREE.Vector3().fromBufferAttribute(positions,i).applyMatrix4(o.matrixWorld));
    const polygon=hull(vertices);if(polygon.length<3)continue;
    if(id===16&&o.name==='beacon'&&phase===20)beacon={actualMinX:Math.min(...vertices.map(p=>p.x)),actualMaxX:Math.max(...vertices.map(p=>p.x)),oldClearanceEnvelope:.32+.30+.10};
-   for(const route of nav.routes)for(const path of [route.enter,route.leave])for(let j=1;j<path.points.length;j++)if(pathHits(path.points[j-1],path.points[j],polygon)){collisions++;if(examples.length<3)examples.push({mesh:o.name,phase:phase/20,station:route.landmark});}
+   for(const path of auditedPaths)for(let j=1;j<path.points.length;j++)if(pathHits(path.points[j-1],path.points[j],polygon)){collisions++;if(examples.length<3)examples.push({mesh:o.name,phase:phase/20});}
   }
  }
- report.push({id,routes:nav.routes.length,deformedGeometryIntersections:collisions,...(examples.length?{examples}:{})});
+ report.push({id,routes:nav.routes.length,compiledPaths:nav.paths.size,reservedSlots:allSlots.length,deformedGeometryIntersections:collisions,...(examples.length?{examples}:{})});
 }
-console.log(JSON.stringify({beacon,report}));if(report.some(r=>r.deformedGeometryIntersections))process.exitCode=1;
+console.log(JSON.stringify({coverage:{collapsePoses:21,geometry:'Tagged exported mesh hulls in XZ with .10 route clearance',configurationTransforms:false,fullAnimatedBodyAndProps:false},beacon,report}));if(report.some(r=>r.deformedGeometryIntersections))process.exitCode=1;

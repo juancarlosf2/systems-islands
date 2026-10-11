@@ -17,7 +17,7 @@ Publish the **contents of `dist/` as the web root**. Its `index.html`, `assets/`
 npm run preview
 ```
 
-The [v1.0.1 static ZIP](https://github.com/juancarlosf2/systems-islands/releases/download/v1.0.1/systems-islands-static.zip) is the prebuilt alternative. Extract it and publish the directory containing `index.html`; do not assume your host can run a ZIP as a page.
+The [v1.1.0 static ZIP](https://github.com/juancarlosf2/systems-islands/releases/download/v1.1.0/systems-islands-static.zip) is the prebuilt alternative. Extract it and publish the directory containing `index.html`; do not assume your host can run a ZIP as a page.
 
 If your host builds from Git, use `npm ci && npm run build` as its build command and `dist` as its publish directory. Select a compatible Node version explicitly if the host's default differs from the README requirements.
 
@@ -29,7 +29,7 @@ The host must serve HTML, JavaScript, CSS, fonts and GLB models as static files 
 
 ## Portable edition
 
-For direct browser opening, download [systems-islands-offline.html](https://github.com/juancarlosf2/systems-islands/releases/download/v1.0.1/systems-islands-offline.html), or use the same file from your local `dist/` after building. Open that named file in a modern browser. It embeds React, Three.js, Motion, fonts, styles, all sixteen worlds and the crew, and can play without a server or internet connection. Keep the embedded dependency notices with the file.
+For direct browser opening, download [systems-islands-offline.html](https://github.com/juancarlosf2/systems-islands/releases/download/v1.1.0/systems-islands-offline.html), or use the same file from your local `dist/` after building. Open that named file in a modern browser. It embeds React, Three.js, Motion, fonts, styles, all sixteen worlds and the crew, and can play without a server or internet connection. Keep the embedded dependency notices with the file.
 
 The ordinary `dist/index.html` references other files and must be served over HTTP or HTTPS. Opening it from disk is not the portable workflow. Conventional hosting also does not install an offline cache or service worker; use the portable file when reliable disconnected play is required.
 

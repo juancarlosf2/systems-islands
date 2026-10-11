@@ -5,6 +5,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import './world.css';
 import { evaluateLevel } from './game/simulation.js';
 import { batchStaticMeshes } from './rendering/batchStaticMeshes.js';
+import { compileCrewPlayback, sampleCrewPlayback, traceEventAt, tracePacketState, crewRoleColors } from './rendering/crewPlayback.js';
 
 const cache = new Map();
 const navigationCache = new Map();
@@ -265,7 +266,52 @@ function createCrewNavigation(model) {
   const crowdRoutes=celebrity ? routes.filter(r=>r.landmark==='celebrity') : [];
   if(!crowdRoutes.length)crowdRoutes.push(...(celebrity ? routes.slice().sort((a,b)=>a.workstation.distanceToSquared(celebrity)-b.workstation.distanceToSquared(celebrity)).slice(0,5) : routes));
   const heightAt=point=>surfaces.find(surface=>inside(point,surface.corners))?.height??.22;
-  return {entrance,exit,routes,crowdRoutes,isClear,heightAt};
+  // Slots are authored-site-adjacent clear spaces, shared across all reservations.
+  // Keeping distinct slots globally also prevents neighbouring sites sharing a queue spot.
+  let revisionHash=2166136261;
+  const revisionSource=JSON.stringify({boundary,obstacles,points,surfaces});
+  for(let i=0;i<revisionSource.length;i++)revisionHash=Math.imul(revisionHash^revisionSource.charCodeAt(i),16777619);
+  const revision=`chapter-${model.userData.chapterId}:clearance-v2:${(revisionHash>>>0).toString(16)}`;
+  const slots=new Map(),reservedPoints=[],paths=new Map();
+  const getSlots=landmark=>{
+    if(slots.has(landmark))return slots.get(landmark);
+    const route=routes.find(r=>r.landmark===landmark)||routes[0];
+    const anchor=landmark==='entrance'?entrance:landmark==='exit'?exit:route.workstation;
+    const candidates=[anchor,...grid.filter((p,i)=>clear[i]&&p.distanceToSquared(anchor)<36).sort((a,b)=>a.distanceToSquared(anchor)-b.distanceToSquared(anchor))];
+    const result=[];
+    for(const direct of [true,false]){
+      for(const point of candidates){
+        if(reservedPoints.some(p=>p.distanceToSquared(point)<.24*.24))continue;
+        const connector=direct?(segmentClear(anchor,point)?[anchor,point]:null):findPath(anchor,point);
+        if(!connector)continue;
+        const slot={id:`${landmark}:${result.length}`,landmark,point:point.clone(),anchor,route,connector,available:landmark==='entrance'||landmark==='exit'||route.landmark===landmark};
+        result.push(slot);reservedPoints.push(slot.point);
+        if(result.length===10)break;
+      }
+      if(result.length===10)break;
+    }
+    if(result.length<10)throw new Error(`Chapter ${model.userData.chapterId} has insufficient safe queue slots for ${landmark}.`);
+    slots.set(landmark,result);return result;
+  };
+  const getPath=(from,to)=>{
+    const key=`${revision}:${from.id}>${to.id}`;
+    if(paths.has(key))return paths.get(key);
+    let points;
+    if(segmentClear(from.point,to.point))points=[from.point,to.point];
+    else {
+      // Existing entrance spines form a conservative exterior graph. No per-frame A*.
+      // Exit's spine runs exit -> workstation -> entrance.
+      const toEntrance=slot=>slot.landmark==='exit'?[...slot.route.leave.points].reverse().concat([...slot.route.enter.points].reverse().slice(1)):slot.landmark==='entrance'?[entrance]:[...slot.route.enter.points].reverse();
+      points=[...from.connector].reverse().concat(toEntrance(from),toEntrance(to).reverse(),to.connector);
+      const simplified=[points[0]];let index=0;
+      while(index<points.length-1){let next=points.length-1;while(next>index+1&&!segmentClear(points[index],points[next]))next--;simplified.push(points[next]);index=next;}
+      points=simplified;
+    }
+    const path=pathData(points.map(p=>p.clone()));
+    if(path.points.some((p,i)=>i&&!segmentClear(path.points[i-1],p)))throw new Error(`Unsafe crew path ${key}`);
+    paths.set(key,path);return path;
+  };
+  return {entrance,exit,routes,crowdRoutes,isClear,heightAt,segmentClear,revision,getSlots,getPath,paths,slots};
 }
 
 function pointOnCrewPath(path,distance) {
@@ -366,6 +412,11 @@ export default function World(props) {
     const root = new THREE.Group();
     scene.add(root);
     const dynamic = { chapterId: levelId, model: null, highlights: [], packetRoutes: [], packets: [], running: false, configuration: null, modelsLoaded: 0, ready: false, centers: new Map(), servers: [], actors: [], nodes: [], effects: [], forecast: null, configKey: null, damage: { severity: 0, type: 'none', keys: [] } };
+    const followPosition=new THREE.Vector3(),followDelta=new THREE.Vector3();
+    const carriedGeometry=chart?null:new THREE.BoxGeometry(.32,.24,.18);
+    const carriedMaterials=chart?null:Object.fromEntries(Object.entries(crewRoleColors).map(([role,color])=>[role,new THREE.MeshStandardMaterial({color,roughness:.8})]));
+    const followedMaterial=chart?null:new THREE.MeshStandardMaterial({color:'#f8df88',emissive:'#dfb54b',emissiveIntensity:.6,roughness:.7,depthTest:false,depthWrite:false});
+    if(!chart)tracked.push(carriedGeometry,...Object.values(carriedMaterials),followedMaterial);
     state.current = { dynamic, scene, camera, renderer, controls };
 
     function labelFor(id, worldPosition) {
@@ -444,10 +495,18 @@ export default function World(props) {
           actor.traverse(o => {
             if (/^worker_(arm|leg)_(left|right)$/.test(o.name)) joints.push({object:o, rotation:o.rotation.clone(), leg:/leg/i.test(o.name)});
           });
+          let carried;
+          if(!chart){
+            carried=new THREE.Mesh(carriedGeometry,carriedMaterials.visitor);
+            carried.position.set(.38,.94,.18);
+            carried.visible=false;
+            carried.raycast=()=>{};
+            actor.add(carried);
+          }
           model.add(actor);
           const route = navigation.routes[j % navigation.routes.length];
           actor.position.copy(navigation.entrance);
-          dynamic.actors.push({object:actor, joints, navigation, route, footOffset:workerFootOffset, index:j, stage:'entering', distance:0, pause:0, initialized:false});
+          dynamic.actors.push({object:actor, joints, navigation, route, carried, carriedMaterials, followedMaterial, footOffset:workerFootOffset, index:j, stage:'entering', distance:0, pause:0, initialized:false});
         }
       });
       dynamic.modelsLoaded = scenes.length;
@@ -531,12 +590,25 @@ export default function World(props) {
       previous = time;
       const t = time / 1000;
       controls.update();
-      const current = callbacks.current;
+      const supplied = callbacks.current;
+      const projectedMs=supplied.playback?Math.max(0,Math.min(6000,(supplied.playback.atMs||0)+(supplied.playback.paused||!Number.isFinite(supplied.playback.sampledAt)?0:Math.max(0,time-supplied.playback.sampledAt)))):0;
+      const current=!chart&&supplied.playback?{...supplied,playback:{...supplied.playback,atMs:projectedMs}}:supplied;
+      const playbackTime=!chart&&current.playback?projectedMs/1000:t;
       boat.rotation.y = .3;
       const motionReduced = reducedMotion.matches || current.config?.reducedMotion;
       if (!motionReduced) boat.position.y = -1.9 + Math.sin(t) * .055;
-      const configurationChanged = dynamic.model && updateConfiguration(dynamic, current.config || emptyConfig, tracked, current, scene, t);
-      animateWorld(dynamic, current, t, motionReduced, chart);
+      const configurationChanged = dynamic.model && updateConfiguration(dynamic, current.config || emptyConfig, tracked, current, scene, playbackTime);
+      animateWorld(dynamic, current, playbackTime, motionReduced, chart);
+      const packetState=!chart&&current.playback&&dynamic.crewPlayback?tracePacketState(dynamic.crewPlayback,projectedMs):null;
+      if(!chart&&current.playback?.followJobId){
+        const followed=dynamic.actors.find(actor=>actor.jobId===current.playback.followJobId&&actor.object.visible);
+        if(followed){
+          followed.object.getWorldPosition(followPosition);
+          followPosition.y=.5;
+          followDelta.copy(followPosition).sub(controls.target).multiplyScalar(motionReduced?1:.07);
+          controls.target.add(followDelta);camera.position.add(followDelta);controls.update();
+        }
+      }
       if (configurationChanged || time - diagnosticTime >= 500) {
         diagnosticTime = time;
         let visiblePeople = 0, blockingIntersections = 0, visibleServers = 0;
@@ -546,19 +618,34 @@ export default function World(props) {
           if (!actor.navigation.isClear(actor.object.position)) blockingIntersections++;
         }
         for (const {object} of diagnosticServers) if (object.visible) visibleServers++;
-        element.dataset.workforceCount = String(chart ? dynamic.actors.length : dynamic.workforce || 0);
+        element.dataset.workforceCount = String(chart ? dynamic.actors.length : current.playback ? dynamic.crewPlayback?.timelines.length || 0 : dynamic.workforce || 0);
         element.dataset.visiblePeople = String(visiblePeople);
         element.dataset.blockingIntersections = String(blockingIntersections);
         element.dataset.visibleServers = String(visibleServers);
         element.dataset.damageType = dynamic.damage.type;
         element.dataset.damageSeverity = String(dynamic.damage.severity);
         element.dataset.routeCount = String(dynamic.packetRoutes.length);
+        element.dataset.traceJobs=String(dynamic.crewPlayback?.timelines.length||0);
+        element.dataset.activeJobIds=JSON.stringify(dynamic.actors.filter(a=>a.jobId&&a.object.visible).map(a=>a.jobId));
+        element.dataset.activeJobLandmarks=JSON.stringify(dynamic.actors.filter(a=>a.jobId&&a.object.visible).map(a=>({id:a.jobId,landmark:a.tracePose?.event?.landmark,action:a.tracePose?.event?.action,physicalLandmark:a.tracePose?.slot?.landmark,stage:a.stage})));
+        const reservations=dynamic.actors.filter(a=>a.jobId&&a.object.visible).map(a=>a.tracePose?.slot?.id).filter(Boolean);
+        element.dataset.reservedSlots=JSON.stringify(reservations);
+        element.dataset.reservationConflicts=String(reservations.length-new Set(reservations).size);
+        element.dataset.traceFallbacks=String(dynamic.crewPlayback?.fallbackCount||0);
+        element.dataset.playbackMs=String(current.playback?.atMs??0);
+        element.dataset.followedJobId=current.playback?.followJobId||'';
+        element.dataset.cachedCrewPaths=String(dynamic.actors[0]?.navigation.paths.size||0);
+        element.dataset.crewPositions=JSON.stringify(dynamic.actors.filter(a=>a.jobId&&a.object.visible).map(a=>({id:a.jobId,position:a.object.position.toArray().map(n=>Number(n.toFixed(4)))})));
+        element.dataset.tracePacketCounts=JSON.stringify(packetState?.counts||{});
+        element.dataset.tracePacketLostRatio=String(packetState?.lostRatio||0);
+        element.dataset.crewPresentationHolds=String(dynamic.crewPlayback?.timelines.filter(timeline=>timeline.holdAtEntrance).length||0);
       }
       if(!chart){
         const events=current.result?.events||[];
-        const index=Math.min(events.length-1,Math.floor((t-(dynamic.start||t))/1.6));
-        eventCaption.textContent=current.running?(events[index]?.message || `${current.result?.traffic?.bottleneck || 'Architecture'} · ${current.result?.traffic?.delivered ?? 0} of ${current.result?.traffic?.count ?? 0} accepted in this trial`).slice(0,140):'';
-        eventCaption.style.display=current.running?'block':'none';
+        const index=Math.min(events.length-1,Math.floor((playbackTime-(dynamic.start||playbackTime))/1.6));
+        const traceEvent=dynamic.crewPlayback&&current.playback?traceEventAt(dynamic.crewPlayback.events,current.playback.atMs):null;
+        eventCaption.textContent=current.running||current.playback?(traceEvent?.message || events[index]?.message || `${current.result?.traffic?.bottleneck || 'Architecture'} · ${current.result?.traffic?.delivered ?? 0} of ${current.result?.traffic?.count ?? 0} accepted in this trial`).slice(0,140):'';
+        eventCaption.style.display=current.running||current.playback?'block':'none';
       }
       dynamic.packets.forEach((p, i) => {
         if (chart) {
@@ -567,8 +654,8 @@ export default function World(props) {
           p.position.set(THREE.MathUtils.lerp(a[0],b[0],phase), -1.75,THREE.MathUtils.lerp(a[1],b[1],phase));
           p.visible = true;
         } else {
-          p.visible = Boolean(current.running);
-          if (!current.running || !dynamic.packetRoutes.length) return;
+          p.visible = Boolean(current.running||current.playback);
+          if (!(current.running||current.playback) || !dynamic.packetRoutes.length) return;
           let routes = dynamic.packetRoutes;
           if(dynamic.chapterId === 1) {
             const hit = i / dynamic.packets.length < .9 * (current.config.cache || 0) / 100;
@@ -577,12 +664,12 @@ export default function World(props) {
           }
           const route = routes[i % routes.length];
           const speed = packetSpeed(dynamic.chapterId, current.config || {});
-          const phase = motionReduced ? (i % 8) / 8 : (t * speed + i * .09) % 1;
+          const phase = motionReduced ? (i % 8) / 8 : (playbackTime * speed + i * .09) % 1;
           p.position.copy(route.getPoint(phase));
-          const droppedRatio = (current.result?.traffic?.dropped || 0) / Math.max(1,current.result?.traffic?.count || 100);
-          p.material = i / dynamic.packets.length < droppedRatio ? p.userData.lostMaterial : p.userData.goodMaterial;
+          const lostRatio = packetState ? packetState.lostRatio : (current.result?.traffic?.dropped || 0) / Math.max(1,current.result?.traffic?.count || 100);
+          p.material = i / dynamic.packets.length < lostRatio ? p.userData.lostMaterial : p.userData.goodMaterial;
           p.scale.setScalar(1 + Math.sin(phase * Math.PI) * .2);
-          if (i / dynamic.packets.length < droppedRatio && phase > .78) p.position.y -= motionReduced ? 1.2 : (phase-.78)*8;
+          if (i / dynamic.packets.length < lostRatio && phase > .78) p.position.y -= motionReduced ? 1.2 : (phase-.78)*8;
         }
       });
       if (markerLevelId !== current.level?.id) {
@@ -649,9 +736,10 @@ export default function World(props) {
 }
 
 function updateConfiguration(dynamic, config, tracked, current, scene, time) {
-  if (current.running && !dynamic.running) dynamic.start = time;
+  if (current.playback) dynamic.start=0;
+  else if (current.running && !dynamic.running) dynamic.start = time;
   dynamic.running = current.running;
-  const phase = current.running ? Math.min(3, Math.floor((time - (dynamic.start ?? time)) / 1.5)) : 4;
+  const phase = current.running || current.playback ? Math.min(3, Math.floor((time - (dynamic.start ?? time)) / 1.5)) : 4;
   if (dynamic.configReference !== config) {
     dynamic.configReference = config;
     const configKey = JSON.stringify(config);
@@ -667,7 +755,7 @@ function updateConfiguration(dynamic, config, tracked, current, scene, time) {
   dynamic.result = current.result;
   const id = dynamic.chapterId;
   const result = current.result || dynamic.forecast;
-  const actual = current.result && (!current.running || phase >= 1);
+  const actual = current.result && (current.playback ? phase >= 1 : !current.running || phase >= 1);
   const failed = actual ? result.objectives.map((o,i) => o.met ? -1 : i).filter(i => i >= 0) : [];
   const severity = failed.length / 3;
   const hazard = hazardFor(id, failed, result);
@@ -855,8 +943,48 @@ function animateWorld(dynamic,current,time,reduced,chart) {
   const damage=dynamic.damage;
   const delta = Math.min(.1, Math.max(0,time-(dynamic.lastCrewTime??time)));
   dynamic.lastCrewTime = time;
-  dynamic.actors.forEach(actor => {
+  const trace=current.result?.trace;
+  const hasPlayback=!chart&&current.playback&&trace&&dynamic.actors.length;
+  if(hasPlayback){
+    if(dynamic.crewPlayback?.trace!==trace)dynamic.crewPlayback=compileCrewPlayback(trace,dynamic.actors[0].navigation);
+    const atMs=Math.max(0,Math.min(trace.playbackMs||6000,current.playback.atMs||0));
+    dynamic.actors.forEach((actor,index)=>{
+      const timeline=dynamic.crewPlayback.timelines[index];
+      if(!timeline){actor.object.visible=false;actor.carried.visible=false;actor.jobId=null;return;}
+      const pose=sampleCrewPlayback(timeline,atMs,reduced,actor.object.position);
+      actor.tracePose=pose;actor.jobId=timeline.job.id;actor.stage=pose.stage;actor.traceActive=true;
+      actor.object.visible=pose.visible;
+      actor.object.position.y=actor.navigation.heightAt(actor.object.position)-actor.footOffset;
+      if(pose.walking)actor.object.rotation.y=pose.heading;
+      else {
+        const anchor=pose.slot.anchor;
+        actor.object.rotation.y=Math.atan2(anchor.x-actor.object.position.x,anchor.z-actor.object.position.z);
+      }
+      const role=timeline.job.role||'visitor';
+      const followed=current.playback.followJobId===timeline.job.id;
+      actor.carried.visible=pose.visible;
+      actor.carried.material=followed?actor.followedMaterial:actor.carriedMaterials[role]||actor.carriedMaterials.visitor;
+      actor.carried.scale.set(followed?1.4:1,followed?1.8:1,1);
+      actor.carried.position.y=followed?1.7:.94;
+      actor.carried.renderOrder=followed?10:0;
+      actor.joints.forEach(joint=>{
+        joint.object.rotation.copy(joint.rotation);
+        if(reduced||!pose.visible)return;
+        const side=joint.object.name.endsWith('left')?0:Math.PI;
+        if(pose.walking)joint.object.rotation.x+=Math.sin(time*9+side)*(joint.leg?.45:.35);
+        else if(!joint.leg){
+          const action=pose.physicalEvent?.action;
+          if(pose.stage==='acknowledging'||action==='handoff')joint.object.rotation.x-=.8+Math.sin(time*5+side)*.25;
+          else if(pose.stage==='working')joint.object.rotation.x+=role==='technician'?-1+Math.sin(time*8+side)*.2:role==='operator'?-.65+Math.sin(time*5+side)*.3:role==='courier'?-.5:-.2;
+          else if(pose.stage==='waiting'&&action==='retry')joint.object.rotation.x+=Math.sin(time*2+side)*.12;
+        }
+      });
+    });
+  } else {dynamic.crewPlayback=null;dynamic.actors.forEach(actor => {
     const {object,joints,navigation,index}=actor;
+    actor.carried&&(actor.carried.visible=false);
+    actor.jobId=null;actor.tracePose=null;
+    if(actor.traceActive){actor.traceActive=false;actor.initialized=false;actor.stage='entering';actor.distance=0;actor.pause=0;}
     const crowd=!chart && dynamic.chapterId===11 && (current.config.fanout==='push' || (current.config.fanout==='hybrid' && current.config.threshold>100000));
     const wanted=chart || index<dynamic.workforce || index<2 || crowd;
     const refuge=!chart && index>=dynamic.workforce && index<2 && !crowd;
@@ -901,7 +1029,7 @@ function animateWorld(dynamic,current,time,reduced,chart) {
       if(reduced || actor.stage==='hidden' || refuge && !walking)return;
       joint.object.rotation.x += joint.leg ? (walking?Math.sin(time*9+side)*.45:0) : (walking?Math.sin(time*9+side)*.35:Math.sin(time*6+side)*.8-.6);
     });
-  });
+  });}
   if(chart || !dynamic.model)return;
   const fall = reduced ? 1 : Math.min(1,Math.max(0,(time-(dynamic.start??time)-1.5)/1.5));
   dynamic.nodes.forEach(({object:o,position,rotation}) => {

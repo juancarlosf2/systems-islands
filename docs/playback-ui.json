@@ -1,0 +1,80 @@
+{
+  "files": [
+    "src/App.jsx",
+    "src/styles.css",
+    "src/ui/playbackClock.js",
+    "tests/playbackClock.test.js"
+  ],
+  "checks": {
+    "clockTests": "3/3 pass",
+    "integrationTestsAtCheck": "58 tests passed during UI implementation; final expanded suite: 97 tests passed",
+    "productionAndPortableBuild": "pass exit 0",
+    "ownedDiffWhitespace": "pass"
+  },
+  "browser": {
+    "chartMarkerPointerSelectionAndPlay": "chapter 4 -> The floodgates level",
+    "pause": {
+      "beforeMs": 755.1999999880791,
+      "afterMs": 755.1999999880791,
+      "waitSeconds": 6.5,
+      "configsLocked": true,
+      "earlyDebrief": false
+    },
+    "stepMs": 818.1818181818181,
+    "resume": {
+      "debriefs": 1,
+      "atMs": 6000,
+      "traceRetained": true
+    },
+    "site": {
+      "trialActionsDisabled": true,
+      "stagedCapacityBefore": 4,
+      "stagedCapacityAfter": 5,
+      "displayUpdated": true,
+      "traceClearedAfterConfigChange": true
+    },
+    "followSelected": true,
+    "modalFocusTrapped": true,
+    "escapeRestoredFocus": "Token reservoir",
+    "successfulAward": {
+      "4": 3
+    },
+    "repeatTickAwardUnchanged": true,
+    "navigationCancel": {
+      "afterWaitSeconds": 6.5,
+      "stars": {
+        "4": 3
+      },
+      "lateDebrief": false,
+      "running": false
+    },
+    "mobile": {
+      "viewportWidth": 390,
+      "documentScrollWidth": 390,
+      "stageBottomEqualsControlStripTop": true
+    },
+    "reducedMotion": {
+      "enabled": true,
+      "pausedBeforeMs": 363,
+      "pausedAfterMs": 363
+    },
+    "completedTraceBrowseStepMs": 1003.6585365853658,
+    "refine": {
+      "traceCleared": true,
+      "focus": "control-5-algorithm"
+    },
+    "console": "0 errors; expected reduced-motion warning",
+    "chartKeyboardSelectionAndPlay": {
+      "selected": "The observatory",
+      "entered": true
+    }
+  },
+  "screenshots": [
+    "playwright/mobile-playback.png",
+    "playwright/mobile-stage-play.png"
+  ],
+  "limits": [
+    "UI/browser flows sampled chapters 4 and 5; parent handles all16/offline validation",
+    "T3 preview tab timed out/closed; successful verification uses isolated Playwright CLI systems-ui"
+  ]
+}

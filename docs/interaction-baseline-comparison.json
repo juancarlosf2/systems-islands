@@ -1,0 +1,72 @@
+{
+  "baselineCommit": "2a0497089cdf4f21be6786e2f71dddfe9e59a55a",
+  "chapters": 16,
+  "cases": 290,
+  "baselineFieldsUnchanged": true,
+  "coverage": [
+    {
+      "chapter": 1,
+      "cases": 19
+    },
+    {
+      "chapter": 2,
+      "cases": 18
+    },
+    {
+      "chapter": 3,
+      "cases": 17
+    },
+    {
+      "chapter": 4,
+      "cases": 22
+    },
+    {
+      "chapter": 5,
+      "cases": 16
+    },
+    {
+      "chapter": 6,
+      "cases": 19
+    },
+    {
+      "chapter": 7,
+      "cases": 14
+    },
+    {
+      "chapter": 8,
+      "cases": 20
+    },
+    {
+      "chapter": 9,
+      "cases": 20
+    },
+    {
+      "chapter": 10,
+      "cases": 22
+    },
+    {
+      "chapter": 11,
+      "cases": 17
+    },
+    {
+      "chapter": 12,
+      "cases": 15
+    },
+    {
+      "chapter": 13,
+      "cases": 19
+    },
+    {
+      "chapter": 14,
+      "cases": 15
+    },
+    {
+      "chapter": 15,
+      "cases": 15
+    },
+    {
+      "chapter": 16,
+      "cases": 22
+    }
+  ]
+}

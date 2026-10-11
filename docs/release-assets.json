@@ -1,6 +1,7 @@
 {
-  "portableBytes": 20963856,
-  "portableMiB": 19.99,
+  "release": "v1.1.0",
+  "portableBytes": 21007622,
+  "portableMiB": 20.03,
   "embeddedModels": 17,
   "externalScriptTags": 0,
   "externalStylesheetTags": 0,
@@ -92,9 +93,36 @@
       "sha256": "5da780380d346b60aaa65f9d922b0d07b69220612facfce8438a468d112c5f02"
     }
   ],
-  "portableSha256": "8cca08647eaba3e1d9a3fc78431757e9e29215f1eafa8ece0e778dea45938a86",
+  "portableSha256": "54de1ef70a59331923799e3592580aad8546ad69b565822320d032723aae3ca6",
   "thirdPartyNoticesBytes": 29211,
   "thirdPartyNoticesEmbedded": true,
-  "cleanInstallNode": "22.23.1",
-  "runtimeUnchangedFromVerifiedOfflineBuild": true
+  "sourceBuild": "ordinary Vite and portable builds passed",
+  "assetBytesUnchanged": true,
+  "downloads": [
+    {
+      "name": "systems-islands-offline.html",
+      "bytes": 21007622,
+      "sha256": "54de1ef70a59331923799e3592580aad8546ad69b565822320d032723aae3ca6"
+    },
+    {
+      "name": "systems-islands-static.zip",
+      "bytes": 2043410,
+      "sha256": "2650d69b3bd469f846d3b2bb9ed5a98b164a3cbfe11fcbb2eb6d503f0c666a86"
+    },
+    {
+      "name": "systems-islands-grid-full.png",
+      "bytes": 4176600,
+      "sha256": "06c06049afe43394d47848d283a996dfb17d694bfda95610dd6f3cba04ac1c30"
+    },
+    {
+      "name": "systems-islands-grid-share.jpg",
+      "bytes": 2778528,
+      "sha256": "ee1230f23153caea34941934cdec23fe4525b6e99a84ba876f05bad8e4b90fd5"
+    },
+    {
+      "name": "THIRD_PARTY_NOTICES.txt",
+      "bytes": 29211,
+      "sha256": "86a343367ba811d7008d7376edb9a7a0fe4b11d93faea67040e6c3525327866e"
+    }
+  ]
 }

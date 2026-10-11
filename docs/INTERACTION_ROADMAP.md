@@ -1,18 +1,18 @@
-# Proposed interaction roadmap
+# Interaction roadmap
 
-**Status: interaction roadmap PROPOSED; performance foundation IMPLEMENTED and measured.** Role-specific NPC tasks, contextual player actions and new educational policies below remain future work. The performance foundation and its validation are recorded separately below. The gameplay baseline is the sixteen mission definitions in `src/game/levels.js`, the shared contracts in [GAME_PLAN.md](GAME_PLAN.md), and the current play and accessibility behavior in [README.md](../README.md). Existing missions remain playable with their current objectives, configuration snapshots, scoring and earned-star semantics throughout the rollout.
+**Status: the first interaction layer is implemented across all sixteen worlds in v1.1.0.** Model-instrumented jobs, contextual changes using existing controls, reserved site paths, Play beneath the render, pause/step/resume, job following and completed-trace browsing are implemented. See [the implementation contract](PLAYABLE_INTERACTIONS.md) and [validation](VALIDATION.md). New staffing costs, custom incident commands, seeded challenge modes and additional architecture policies remain planned. The detailed proposals below describe the broader destination; they are not a claim that every phase has shipped. Existing mission objectives, configuration snapshots, scoring and earned-star semantics are preserved.
 
 The goal is to make a visitor, operator, courier or technician visibly perform a chapter-specific job, and let the player understand or change that job through a small contextual interaction. Walking should explain the system: a courier waits because admission is closed, a technician repairs a stale replica because a reconciliation job exists, and a receipt returns only after the modeled acceptance condition. Decorative activity must never imply successful processing that the simulation did not perform.
 
 ## Current behavior and preserved boundaries
 
-Today crews arrive through an entrance, walk to an assigned workstation, perform a generic arm work gesture, and leave through an exit before becoming hidden. Configuration forecasts and deterministic trial results influence staffing and hazards. Existing finite navigation, terrain and footprint checks gate safe routes; they are not a general physics engine. This baseline is useful movement and consequence feedback, but does not yet implement the role-specific queue, reservation, task or acknowledgment protocol proposed below.
+Outside trials, crews retain their entrance/workstation/exit idle loop. During trials, sampled visitors, operators, couriers and technicians follow actual chapter operation traces, reserve distinct site or queue positions, carry role-colored props and use task-specific poses. Configuration forecasts and deterministic results influence staffing and hazards. Terrain and conservative footprint checks gate site-to-site paths; this remains a finite navigation system rather than a general physics engine.
 
 The trial presentation lasts six seconds. The mission model remains a pure, deterministic educational calculation from an immutable configuration/scenario snapshot. Domain time is distinct from presentation time: chapter 7 uses milliseconds, chapter 9 permits a ten-second crawl, and chapter 2 estimates yearly downtime. Compressing or pausing the six-second presentation must not change those model results.
 
 ### Implemented performance foundation
 
-The chart now batches static environment geometry while preserving all **16 islands, 32 chart crew members and 180 chart paths**. Chart static mesh count changed from **3,173 to 213**. Tests verify that transformed geometry triangle counts and bounds are unchanged. Level environment meshes remain intentionally unbatched; the baseline level population remains **10 workers**. These changes do not implement the proposed NPC protocol or player options.
+The chart batches static environment geometry while preserving all **16 islands, 32 chart crew members and 180 chart paths**. Chart static mesh count changed from **3,173 to 213**. Tests verify that transformed geometry triangle counts and bounds are unchanged. Level environment meshes remain individually mutable; the level population is capped at **10 workers**. The measurements below were taken for the v1.0.1 rendering foundation before the interaction implementation.
 
 Before/after captures used the same Chrome/T3 environment, a **1280 × 800** viewport, device DPR **2**, renderer DPR capped at **1.7**, and an **eight-second** sampling window per capture:
 
@@ -190,6 +190,8 @@ For each chapter scene, author safe exterior work slots and waiting/refuge posit
 Deliver the pilots' native scenes, exported GLBs and task-pose evidence first. Reuse those assets for remaining chapters, adding a measured tool for observers, an ID stamp, version/chunk parcel or playback indicator only where event semantics differ. Keep existing materials and environment silhouettes. Asset count, encoded size and draw-call changes are recorded before and after; this roadmap contains no claim about their measured cost.
 
 ## Rollout and acceptance gates
+
+The original pilot sequence below is retained as the design roadmap. By user choice, v1.1.0 rolled out the first visual/site-action layer across all sixteen chapters together. [Playable interactions](PLAYABLE_INTERACTIONS.md) and [validation evidence](VALIDATION.md) describe what passed; the later staffing, incident and seeded-policy gates remain open.
 
 | Phase | Work | Exit criteria |
 | --- | --- | --- |

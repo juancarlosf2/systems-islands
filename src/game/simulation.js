@@ -1,4 +1,5 @@
 import { getLevel } from './levels.js';
+import { createTrace } from './interaction.js';
 
 const round = (n, digits = 2) => Number(n.toFixed(digits));
 const metric = (label, value, unit, met) => ({ label, value: typeof value === 'number' ? round(value) : value, unit, status: met ? 'good' : 'bad' });
@@ -42,7 +43,7 @@ function finish(level, met, metrics, explanation, advice, { count = 40, delivere
   };
 }
 
-function scale(level, c) {
+function scale(level,c,t) {
   const web = (c.balance ? c.servers : 1) * 260;
   const dbWork = 1000 * (0.1 + 0.9 * (1 - c.cache / 100));
   const db = 260 + (c.replica ? 320 : 0);
@@ -51,41 +52,77 @@ function scale(level, c) {
   const cost = c.servers * 18 + (c.balance ? 10 : 0) + c.cache * 0.2 + (c.replica ? 20 : 0);
   const met = [fraction >= 0.95, latency <= 130, cost <= 130];
   const bottleneck = 1000 / web > dbWork / db ? 'Serving tier' : 'Database tier';
+  // This is a continuous capacity model, so counters are request equivalents, not invented request IDs.
+  t.input(0,1000,'dock','Burst of 1,000 request equivalents enters the capacity model.');
+  for(const [outcome,quantity] of [['completed',1000*fraction],['rejected',1000*(1-fraction)]]) {
+    if(quantity<=0)continue;
+    for(let i=0;i<5;i++) {
+      const id=`${outcome}-cohort-${i}`;t.sample(id,`${outcome==='completed'?'Served':'Capacity rejected'} cohort ${i+1}`,'visitor');
+      t.emit(0,id,'dock','arrive','pending',`${round(quantity/5)} request equivalents.`,{quantity:quantity/5});
+      t.emit(1,id,'balancer',c.balance?'route':'single-route','pending',`Traffic reaches ${c.balance?c.servers:1} serving nodes.`);
+      t.emit(2,id,'servers','work','pending',`Serving capacity ${web} ops/s.`);
+      if(outcome==='completed') {
+        t.emit(3,id,'cache','lookup','pending',`${c.cache}% of eligible reads offloaded.`);
+        t.emit(4,id,'database','read','pending',`${round(dbWork)} modeled database ops/s; capacity ${db}.`,{modeledLatency:latency});
+      }
+      t.settle(5,id,outcome==='completed'?'dock':bottleneck==='Serving tier'?'servers':'database',outcome,
+        outcome==='completed'?'Serving and database capacity admit this cohort.':'Demand exceeds the modeled bottleneck.',quantity/5);
+    }
+  }
   return finish(level, met, [metric('Requests served',fraction*100,'%',met[0]),metric('Modeled latency',latency,'ms',met[1]),metric('Architecture cost',cost,'coins',met[2]),metric('Database work',dbWork,'ops/s',dbWork <= db)],
     `The ${bottleneck.toLowerCase()} limits this burst. Balancing enables ${c.balance ? c.servers : 1} serving node(s); read offload leaves ${round(dbWork)} database operations.`,
     !c.balance ? 'Enable balancing so added servers receive traffic, then inspect database work.' : dbWork > db ? 'Reduce read pressure with caching or a replica, then rerun the burst.' : cost > 130 ? 'Reduce unused capacity while retaining the delivery and latency targets.' : 'Increase serving capacity until the latency curve fits the target.',
     {count:1000,delivered:1000*fraction,bottleneck,quality:Math.min(1,130/Math.max(1,latency))});
 }
 
-function estimate(level, c) {
+function estimate(level,c,t) {
   const s = level.scenario;
   const peak = s.dailyActiveUsers * s.requestsPerUser / 86400 * s.peakMultiplier;
   const storage = s.dailyActiveUsers * s.uploadsPerUser * s.objectSizeKiB * 1024 / 1e9;
   const downtime = 525600 * (1 - s.availabilityPercent / 100);
   const errors = [Math.abs(c.peak-peak)/peak,Math.abs(c.storage-storage)/storage,Math.abs(c.downtime-downtime)/downtime];
   const met = errors.map(e => e <= 0.2);
+  t.input(0,3,'telescope','Three dimensioned estimates submitted for validation.');
+  ['telescope','storage','clock'].forEach((site,i)=>{
+    const id=`estimate-${i}`;t.sample(id,['Peak workload','Daily ingest','Annual downtime'][i],'operator');
+    t.emit(i*3,id,'telescope','measure','pending','Read the declared workload and units.');
+    t.emit(i*3+1,id,site,'calculate','pending',`Relative estimate error ${round(errors[i]*100)}%.`);
+    t.settle(i*3+2,id,site,met[i]?'completed':'rejected',met[i]?'Estimate is inside the 20% tolerance.':'Estimate needs a unit or workload correction.');
+  });
   return finish(level,met,[metric('Peak QPS reference',peak,'QPS',met[0]),metric('Daily ingest reference',storage,'GB/day',met[1]),metric('Annual downtime reference',downtime,'min',met[2]),metric('30-day retained storage',storage*30,'GB',true),...errors.map((e,i)=>metric(['Peak error','Ingest error','Downtime error'][i],e*100,'%',met[i]))],
     `Peak = 240,000 × 40 ÷ 86,400 × 5 = ${round(peak)} QPS. Ingest = 240,000 × 0.2 × 512 × 1,024 ÷ 1,000,000,000 = ${round(storage)} GB/day. Downtime = 525,600 × 0.0005 = ${round(downtime)} minutes.`,
     'Check seconds per day, KiB-to-byte conversion and the unavailable fraction. Daily ingest is different from retained storage.',
     {delivered:40*met.filter(Boolean).length/3,quality:1-errors.reduce((a,b)=>a+b,0)/3});
 }
 
-function framework(level,c) {
+function framework(level,c,t) {
   const stages = [c.scope==='requirements',c.architecture==='archive',c.risk==='reconnect',c.wrap==='tradeoffs'];
   const met = [stages[0] && stages[1],stages[2],stages[3]];
+  t.input(0,4,'scope','Four design decisions submitted.');
+  ['scope','blueprint','deepDive','wrapUp'].forEach((site,i)=>{
+    const id=`decision-${i}`;t.sample(id,`Design decision ${i+1}`,'operator');
+    t.emit(i*2,id,i?'scope':site,'arrive','pending','Carry the stated brief into the design stage.');
+    t.settle(i*2+1,id,site,stages[i]?'completed':'rejected',stages[i]?'Decision covers the declared requirement.':'Decision misses the declared requirement.');
+  });
   return finish(level,met,[metric('Requirements coverage',stages[0]?100:0,'%',stages[0]),metric('Architecture coverage',stages[1]?100:0,'%',stages[1]),metric('Risk investigation',stages[2]?100:0,'%',stages[2]),metric('Wrap-up coverage',stages[3]?100:0,'%',stages[3])],
     'This brief needs durable messages and a reconnect path. The design session succeeds when requirements, architecture, correctness investigation and validation agree.',
     !stages[0] ? 'Clarify workload, durability and offline requirements first.' : !stages[1] ? 'Choose an initial sketch that includes durable storage and reconnect replay.' : !stages[2] ? 'Investigate missing messages after reconnect, the council’s stated risk.' : 'Wrap up with limitations, monitoring and recovery tests.',
     {delivered:10*stages.filter(Boolean).length,events:stages.map((ok,i)=>event(ok?'accepted':'warning',`${['Scope','Architecture','Deep dive','Wrap-up'][i]}: ${ok?'covered':'needs revision'}.`))});
 }
 
-function limiter(level,c) {
+function limiter(level,c,t) {
   const trace = [];
   for (const client of ['resident-a','resident-b']) for (const time of [0,100,200,300,1200,1400,2000,2200]) trace.push({client,time,legitimate:true});
   for (const time of [950,1010]) for (let i=0;i<30;i++) trace.push({client:'attacker',time,legitimate:false});
   trace.sort((a,b)=>a.time-b.time || a.client.localeCompare(b.client));
   const buckets = new Map(); const accepted = []; let legitimate=0,abuse=0;
+  t.input(0,trace.length,'reservoir','16 resident and 60 attacker requests enter the timed workload.');
+  // Include residents before/after the boundary and accepted/rejected attack samples.
+  const sampleIndices=[0,1,6,7,8,37,38,67,trace.length-2,trace.length-1];
   trace.forEach((request,index)=>{
+    const id=`request-${index}`;
+    if(sampleIndices.includes(index))t.sample(id,`${request.client} at ${request.time} ms`,'visitor');
+    if(t.has(id))t.emit(request.time,id,'reservoir','arrive','pending',request.legitimate?'Resident request.':'Attack request.');
     const identity = c.scope==='client' ? request.client : 'all';
     const key = `${identity}:${c.atomic?0:index%2}`;
     const state = buckets.get(key) || {tokens:c.capacity,last:0,window:-1,used:0};
@@ -100,6 +137,9 @@ function limiter(level,c) {
       admit=state.used<c.capacity; if(admit)state.used++;
     }
     buckets.set(key,state);
+    t.emit(request.time,id,'gates','quota',admit?'admitted':'rejected',`${key}: ${admit?'reserve one admission':'quota exhausted'}.`,
+      {client:request.client,counterKey:key,tokens:state.tokens,window:state.window,used:state.used});
+    t.settle(request.time,id,admit?'service':'gates',admit?'completed':'rejected',admit?'Request admitted to the service.':'Request safely throttled.');
     if(admit) { accepted.push(request); if(request.legitimate)legitimate++;else abuse++; }
   });
   const peak=accepted.reduce((max,r)=>Math.max(max,accepted.filter(other=>other.time>=r.time && other.time<r.time+1000).length),0);
@@ -110,7 +150,7 @@ function limiter(level,c) {
     {count:76,delivered:accepted.length,bottleneck:'Floodgate',events:[event('accepted',`${legitimate} legitimate requests admitted.`),event('throttled',`${60-abuse} abusive requests throttled.`),event(peak>18?'warning':'accepted',`Rolling peak: ${peak}/18.`)]});
 }
 
-function hashing(level,c) {
+function hashing(level,c,t) {
   const owners = count => {
     const points=[];
     if(c.algorithm==='ring')for(let server=0;server<count;server++)for(let vnode=0;vnode<c.vnodes;vnode++)points.push({position:hash(`server-${server}:vnode-${vnode}`),server});
@@ -126,6 +166,15 @@ function hashing(level,c) {
   const before=owners(c.servers),after=owners(c.servers+1);
   const migrations=before.flatMap((from,keyIndex)=>from===after[keyIndex]?[]:[{keyIndex,from,to:after[keyIndex]}]);
   const changed=before.reduce((n,owner,i)=>n+(owner!==after[i]),0);
+  t.input(0,800,'ring','800 stored key assignments inspected after a server joins.');
+  for(let i=0;i<800;i++) {
+    const id=`key-${i}`,moved=before[i]!==after[i];
+    if(moved&&t.sample(id,`Migrating key ${i}`,'courier')) {
+      t.emit(1,id,'compass','hash','pending',`Key ${i} maps from server ${before[i]+1} to ${after[i]+1}.`,{from:before[i],to:after[i]});
+      t.emit(2,id,'ring','route','pending','Transfer only this changed ownership range.');
+    }
+    t.settle(3,id,'servers',moved?'completed':'retained',moved?'Key transferred to computed new owner.':'Key remains at its unchanged owner.');
+  }
   const loads=Array(c.servers+1).fill(0);after.forEach(owner=>loads[owner]++);
   const imbalance=Math.max(...loads)/(800/loads.length);
   const entries=c.algorithm==='ring'?(c.servers+1)*c.vnodes:c.servers+1;
@@ -137,10 +186,17 @@ function hashing(level,c) {
     {count:changed,delivered:changed,events:[event('migration',`${changed} keys move to their new owners.`)],bottleneck:'Placement balance',quality:Math.min(1,1.3/imbalance),visual:{migrations,beforeOwners:before,afterOwners:after,loads}});
 }
 
-function vaults(level,c) {
+function vaults(level,c,t) {
   const versions=[0,0,0];const events=[event('partition','Replica 3 is isolated; replicas 1 and 2 remain connected.')];
+  t.input(0,4,'replicas','Majority/minority write and read operations encounter the partition.');
+  for(const id of ['majority-write','isolated-write','majority-read','isolated-read']) {
+    t.sample(id,id,id.endsWith('read')?'visitor':'courier');
+    t.emit(0,id,'partition','partition','pending','Replica 3 is logically isolated.');
+  }
   const majorityAck=c.write<=2;
   if(majorityAck) {for(let i=0;i<c.write;i++)versions[i]=1;events.push(event('write',`Majority acknowledges version 1 with W=${c.write}.`));}
+  t.emit(1,'majority-write','replicas',majorityAck?'persist':'quorum-unavailable',majorityAck?'persisted':'pending',`Reachable write acknowledgments: ${majorityAck?c.write:0}.`,{version:1});
+  t.settle(2,'majority-write','replicas',majorityAck?'completed':'rejected',majorityAck?'Version 1 acknowledged after persistence.':'Configured quorum cannot be reached.',1,{version:majorityAck?1:0});
   const isolatedAck=c.policy==='available' && c.write===1;
   if(isolatedAck){versions[2]=2;events.push(event('warning','The isolated replica acknowledges a conflicting version 2.'));}
   else events.push(event('rejected','Isolated write rejected until coordination is possible.'));
@@ -148,12 +204,17 @@ function vaults(level,c) {
   const majorityRead=c.read<=2 ? Math.max(...[versions[1],versions[0]].slice(0,c.read)) : null;
   const minorityRead=c.policy==='available'&&c.read===1 ? versions[2] : null;
   events.push(event('read',`Majority read: ${majorityRead===null?'quorum unavailable':`version ${majorityRead}`}; isolated read: ${minorityRead===null?'quorum unavailable':`version ${minorityRead}`}.`));
+  if(isolatedAck)t.emit(1,'isolated-write','replicas','persist','persisted','Isolated replica persists conflicting version 2.',{version:2});
+  t.settle(2,'isolated-write','partition',isolatedAck?'completed':'rejected',isolatedAck?'Conflicting isolated write acknowledged.':'Safely rejected before accepting isolated work.',1,{version:isolatedAck?2:0});
+  for(const [id,version] of [['majority-read',majorityRead],['isolated-read',minorityRead]])
+    t.settle(3,id,'replicas',version===null?'rejected':'completed',version===null?'Read quorum unavailable.':`Read returns version ${version}.`,1,{version});
   const stale=(majorityAck && majorityRead!==null && majorityRead<1) || (majorityAck && minorityRead!==null && minorityRead<1) || isolatedAck;
   const overlap=c.read+c.write>3;
   const correctness=overlap&&!stale&&majorityRead!==null&&c.read===2;
   const partitionService=majorityAck&&!isolatedAck&&c.read<=2;
   const versionsBeforeRepair=versions.slice();
   if(c.repair){const latest=Math.max(...versions);versions.fill(latest);events.push(event('repair',`Reconnected replicas converge on version ${latest}.`));}
+  if(c.repair){t.sample('repair','Replica repair','technician');t.emit(4,'repair','partition','heal','pending','Logical partition heals.');t.emit(5,'repair','repair','repair','completed',`Versions ${versionsBeforeRepair.join('/')} converge to ${versions.join('/')}.`,{version:versions[0]});}
   const converged=versions.every(v=>v===versions[0])&&versions[0]>0;
   const met=[correctness,partitionService,converged];
   return finish(level,met,[metric('Read/write overlap',c.read+c.write,'R + W',correctness),metric('Majority write acknowledgments',majorityAck?c.write:0,'replicas',partitionService),metric('Isolated writes acknowledged',isolatedAck?1:0,'writes',!isolatedAck),metric('Versions after healing',versions.join(' / '),'versions',converged)],
@@ -162,22 +223,30 @@ function vaults(level,c) {
     {count:3,delivered:met.filter(Boolean).length,events,bottleneck:'Partition coordination',visual:{versionsBeforeRepair,versionsAfterRepair:versions.slice(),partitionedReplica:2}});
 }
 
-function ids(level,c) {
+function ids(level,c,t) {
   const generated=[];const states=Array.from({length:4},()=>({last:-1,sequence:0,counter:0}));let unsafe=0,rejected=0,inversions=0;
+  t.input(0,28,'workers','Four workers receive seven stamping requests each.');
   for(let batch=0;batch<7;batch++)for(let worker=0;worker<4;worker++) {
+    const jobId=`stamp-${batch}-${worker}`;
+    if(batch===0||batch===6)t.sample(jobId,`Worker ${worker}, batch ${batch}`,'operator');
+    const dispatch=batch*2;
+    if(t.has(jobId))t.emit(dispatch,jobId,'workers','arrive','pending',`Worker identity bits ${c.uniqueWorkers?worker:0}.`);
     const state=states[worker];let time=batch===6?159999999999:160000000000+Math.floor(batch/2);let id;
     if(c.strategy==='local')id=BigInt(state.counter++);
     else if(c.strategy==='ticket')id=BigInt(generated.length+1);
     else {
       if(time<state.last) {
-        if(c.rollback==='reject'){rejected++;continue;}
-        if(c.rollback==='wait')time=state.last+1;
+        if(c.rollback==='reject'){rejected++;t.settle(dispatch,jobId,'clock','rejected','Backward clock: stamp safely rejected.');continue;}
+        if(c.rollback==='wait'){time=state.last+1;if(t.has(jobId))t.emit(dispatch,jobId,'clock','wait','pending',`Wait for safe logical timestamp ${time}.`);}
         else {unsafe++;inversions++;}
       }
       state.sequence=time===state.last?state.sequence+1:0;state.last=time;
       id=(BigInt(time)<<22n)|(BigInt(c.uniqueWorkers?worker:0)<<12n)|BigInt(state.sequence);
     }
+    const collision=generated.includes(id.toString());
     generated.push(id.toString());
+    if(t.has(jobId))t.emit(dispatch,jobId,'assembly','stamp','pending',`Exact ID ${id.toString()}.`,{version:id.toString(),clockTime:time});
+    t.settle(dispatch+1,jobId,'assembly',collision?'lost':'completed',collision?'ID collides with a previous worker stamp.':'ID emitted.',1,{version:id.toString(),unsafeClock:c.strategy==='snowflake'&&batch===6&&c.rollback==='ignore'});
   }
   const collisions=generated.length-new Set(generated).size;
   const latency=c.strategy==='ticket'?generated.length*5:12+(c.rollback==='wait'?4:0);
@@ -191,33 +260,42 @@ function ids(level,c) {
 
 const alphabet='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 function base62(value,length) {let encoded='';do{encoded=alphabet[value%62]+encoded;value=Math.floor(value/62);}while(value>0);return encoded.padStart(length,'0');}
-function shortener(level,c) {
+function shortener(level,c,t) {
   const capacity=62**c.length, mappings=new Map(),aliases=[];let collisions=0,failed=0;
+  t.input(0,360,'encoder','120 link allocations followed by 360 visits, including a destination update.');
+  for(const i of [0,1,2,3,4,5,6,7,118,119])t.sample(`link-${i}`,`Link ${i} and its visits`,'visitor');
   for(let i=0;i<120;i++) {
     const destination=`https://island.example/routes/${i*2}`;
     let number=(c.strategy==='sequence'?i:hash(destination))%capacity;
     let alias=base62(number,c.length);
-    if(mappings.has(alias))collisions++;
+    if(t.has(`link-${i}`))t.emit(0,`link-${i}`,'encoder','allocate','pending',`Proposed alias ${alias}.`);
+    if(mappings.has(alias)){collisions++;t.emit(0,`link-${i}`,'archive',c.collisionCheck?'probe':'overwrite','pending',`Alias ${alias} already has an owner.`);}
     if(c.collisionCheck) {
       let probes=0;
       while(mappings.has(alias)&&probes<capacity){number=(number+1)%capacity;alias=base62(number,c.length);probes++;}
       if(mappings.has(alias)){failed++;aliases.push(null);continue;}
     }
     mappings.set(alias,destination);aliases.push(alias);
+    if(t.has(`link-${i}`))t.emit(0,`link-${i}`,'archive','persist','persisted',`Stored ${alias} → ${destination}.`);
   }
   const browserCache=new Map(),archiveCache=new Map();let correct=0,origins=0,serviceVisits=0;let time=0;
   for(let visit=0;visit<360;visit++) {
     const i=visit%120,alias=aliases[i],expected=`https://island.example/routes/${i*2}${visit>=240&&i===0?'?revision=2':''}`;
-    if(visit===240&&alias){mappings.set(alias,expected);archiveCache.delete(alias);}
+    const jobId=`link-${i}`;
+    if(t.has(jobId))t.emit(time,jobId,'redirect','arrive','pending',`Visit ${visit}.`,{attempt:Math.floor(visit/120)+1});
+    if(visit===240&&alias){mappings.set(alias,expected);archiveCache.delete(alias);t.emit(time,jobId,'archive','update','persisted','Destination changed; archive cache invalidated.',{version:2});}
     let destination;
-    if(c.redirect==='301'&&browserCache.has(alias)){destination=browserCache.get(alias);time+=3;}
+    const fromBrowser=c.redirect==='301'&&browserCache.has(alias);
+    if(fromBrowser){destination=browserCache.get(alias);time+=3;}
     else {
       serviceVisits++;
       if(c.cache&&archiveCache.has(alias)){destination=archiveCache.get(alias);time+=18;}
       else {destination=mappings.get(alias);origins++;time+=110;if(c.cache)archiveCache.set(alias,destination);}
       if(c.redirect==='301'&&alias)browserCache.set(alias,destination);
     }
-    if(alias&&destination===expected)correct++;
+    const ok=Boolean(alias&&destination===expected);if(ok)correct++;
+    if(t.has(jobId))t.emit(time,jobId,'archive',fromBrowser?'browser-cache':'lookup','pending',`Resolved ${destination||'missing mapping'}.`);
+    t.settle(time,jobId,'redirect',ok?'completed':'lost',ok?'Visit resolves to the current destination.':'Visit resolves to missing or stale content.',1,{destination:destination||null,expected,visit});
   }
   // Cache trial reports warmed service lookup, with the cold fill separately disclosed.
   const latency=c.cache?18:110;
@@ -240,25 +318,32 @@ const webGraph={
   'c/forecast':{content:'forecast',links:[]},
   'a/private':{content:'private',links:[],forbidden:true},
 };
-function crawler(level,c) {
+function crawler(level,c,t) {
   const frontier=['a/start'],visited=new Set(),contents=new Set(),lastHost=new Map();let repeat=0,duplicateParsing=0,forbidden=0,violations=0,time=0,fetches=0;
   const events=[];
   while(frontier.length&&fetches<40) {
     const url=c.traversal==='bfs'?frontier.shift():frontier.pop();
-    if(c.urlDedup&&visited.has(url))continue;
-    const page=webGraph[url];if(c.robots&&page.forbidden){events.push(event('skipped',`Robots excludes ${url}.`));continue;}
+    const jobId=`crawl-${url}`;t.sample(jobId,`Scout ${url}`,'courier');
+    t.input(time,1,'frontier',`Frontier dequeues ${url}.`);
+    if(t.has(jobId))t.emit(time,jobId,'frontier','dequeue','pending',`${c.traversal.toUpperCase()} frontier selection.`);
+    if(c.urlDedup&&visited.has(url)){t.settle(time,jobId,'frontier','suppressed','Visited URL suppressed before fetching.');continue;}
+    const page=webGraph[url];if(c.robots&&page.forbidden){events.push(event('skipped',`Robots excludes ${url}.`));t.settle(time,jobId,'robots','rejected','Robots excludes this URL before fetch.');continue;}
     const host=url.split('/')[0],previous=lastHost.get(host);
     const dispatch=Math.max(time,previous===undefined?0:previous+c.delay);
     if(previous!==undefined&&dispatch-previous<250)violations++;
+    if(t.has(jobId))t.emit(time,jobId,'robots','schedule','pending',`Host ${host} next dispatch at ${dispatch} ms.`);
+    if(t.has(jobId))t.emit(dispatch,jobId,'robots','fetch','pending',`Fetch ${url}.`,{host});
     time=dispatch+20;lastHost.set(host,dispatch);fetches++;
     if(visited.has(url))repeat++;visited.add(url);
     if(page.forbidden)forbidden++;
     const duplicate=contents.has(page.content);
-    if(duplicate&&c.contentDedup){events.push(event('duplicate',`Fingerprint skips parsing ${url}.`));continue;}
+    if(duplicate&&c.contentDedup){events.push(event('duplicate',`Fingerprint skips parsing ${url}.`));t.settle(time,jobId,'archive','suppressed','Fingerprint already archived; parsing suppressed.');continue;}
     if(duplicate)duplicateParsing++;
     contents.add(page.content);events.push(event('fetch',`${url} fetched at ${dispatch} ms.`));
+    t.settle(time,jobId,'archive','completed',`Content ${page.content} parsed; ${page.links.length} links discovered.`);
     frontier.push(...page.links);
   }
+  if(frontier.length){t.input(time,frontier.length,'frontier','The fetch budget leaves discovered URLs queued.');t.settle(time,null,'frontier','retained','Discovered frontier work remains queued at the fetch limit.',frontier.length);}
   const allowed=[...contents].filter(content=>content!=='private').length;
   const met=[allowed===8,repeat===0&&duplicateParsing===0,forbidden===0&&violations===0&&time<=10000&&frontier.length===0];
   return finish(level,met,[metric('Allowed unique content',allowed,'/8',met[0]),metric('Repeated URL fetches',repeat,'fetches',repeat===0),metric('Duplicate content parses',duplicateParsing,'parses',duplicateParsing===0),metric('Forbidden fetches',forbidden,'fetches',forbidden===0),metric('Host-delay violations',violations,'violations',violations===0),metric('Crawl elapsed model time',time,'ms',met[2])],
@@ -267,21 +352,36 @@ function crawler(level,c) {
     {count:fetches,delivered:allowed,events,bottleneck:'Crawl frontier'});
 }
 
-function notifications(level,c) {
+function notifications(level,c,t) {
   const jobs=Array.from({length:8},(_,i)=>({id:`job-${i}`,allowed:true,transient:i%3===0}));
   jobs.push({...jobs[1]},{...jobs[3]},{id:'optout-1',allowed:false},{id:'optout-2',allowed:false});
   const delivered=new Set();let duplicates=0,optouts=0,attempts=0,elapsed=0,sideEffects=0;const events=[];
+  t.input(0,jobs.length,'queue','Eight permitted jobs, two repeated envelopes, and two opt-outs.');
+  for(const job of jobs)t.sample(job.id,job.id.startsWith('optout')?`Opt-out ${job.id}`:`Notification ${job.id}`,'courier');
   for(const job of jobs) {
-    if(c.preferences&&!job.allowed){events.push(event('suppressed',`${job.id} opted out.`));continue;}
-    if(c.idempotency&&delivered.has(job.id)){events.push(event('duplicate',`${job.id} already delivered.`));continue;}
-    let time=0;
+    const id=job.id;
+    t.emit(0,id,'preferences','check','pending',job.allowed?'Recipient permits dispatch.':'Recipient opted out.');
+    if(c.preferences&&!job.allowed){events.push(event('suppressed',`${job.id} opted out.`));t.settle(0,id,'preferences','suppressed','Opt-out honored before provider dispatch.');continue;}
+    if(c.idempotency&&delivered.has(job.id)){events.push(event('duplicate',`${job.id} already delivered.`));t.settle(elapsed,id,'queue','suppressed','Previously applied delivery identity suppresses repeated envelope.');continue;}
+    t.emit(0,id,'queue',c.queue?'persist':'volatile','pending',c.queue?'Envelope durably retained before dispatch.':'Envelope has no durable queue.');
+    if(c.queue)t.emit(0,id,'queue','ack','accepted','Durable queue accepts the envelope.');
+    let time=0,success=false;
     for(let attempt=0;attempt<= (c.queue?c.retries:0);attempt++) {
       attempts++;elapsed=Math.max(elapsed,time);
-      if(job.transient&&time<500){events.push(event('retry',`${job.id} provider unavailable at ${time} ms.`));time+=c.backoff;continue;}
-      if(delivered.has(job.id))duplicates++;
+      t.emit(time,id,'channels','attempt','pending',`Provider attempt ${attempt+1}.`,{attempt:attempt+1});
+      if(job.transient&&time<500){
+        events.push(event('retry',`${job.id} provider unavailable at ${time} ms.`));
+        t.emit(time,id,'channels','provider-failure','pending','Transient provider outage lasts until 500 ms.',{attempt:attempt+1});
+        if(attempt<(c.queue?c.retries:0))t.emit(time,id,'queue','retry','pending',`Retry scheduled at ${time+c.backoff} ms with fixed backoff.`,{attempt:attempt+2,retryAt:time+c.backoff});
+        time+=c.backoff;continue;
+      }
+      const repeated=delivered.has(job.id);if(repeated)duplicates++;
       delivered.add(job.id);sideEffects++;if(!job.allowed)optouts++;
-      events.push(event('delivered',`${job.id} delivered at ${time} ms.`));break;
+      events.push(event('delivered',`${job.id} delivered at ${time} ms.`));
+      t.emit(time,id,'channels','side-effect','delivered',`${repeated?'Duplicate ':''}${job.allowed?'permitted':'opt-out violating'} recipient side effect.`,{attempt:attempt+1,duplicate:repeated,allowed:job.allowed});
+      t.settle(time,id,'channels','completed','Provider acknowledges the applied delivery.',1,{attempt:attempt+1});success=true;break;
     }
+    if(!success)t.settle(Math.max(0,time-c.backoff),id,'queue',c.queue?'retained':'lost',c.queue?'Attempt budget exhausted; durable work remains queued.':'Provider failed and volatile work is lost.');
   }
   const permitted=jobs.slice(0,8).filter(job=>delivered.has(job.id)).length;
   const met=[permitted===8,duplicates===0&&optouts===0,attempts<=22&&elapsed<=5000];
@@ -291,7 +391,7 @@ function notifications(level,c) {
     {count:12,delivered:permitted,events,bottleneck:'Provider retry queue'});
 }
 
-function feed(level,c) {
+function feed(level,c,t) {
   const authors=Array.from({length:100},(_,i)=>({followers:80,time:i+1,id:i}));authors.push({followers:100000,time:101,id:100});
   const pulled=author=>c.fanout==='pull'||(c.fanout==='hybrid'&&author.followers>=c.threshold);
   const fanout=authors.reduce((sum,author)=>sum+(pulled(author)?0:author.followers),0);
@@ -302,21 +402,48 @@ function feed(level,c) {
   const latency=35+pullCount*16+pushCount*(1-cached)*8;
   const chronology=readAuthors.slice().sort((a,b)=>b.time-a.time).map(a=>a.id);
   const met=[fanout<=15000,latency<=90,assembly<=4000];
+  t.input(0,1000,'cache','1,000 reader requests assemble the declared author streams.');
+  t.emit(0,null,'celebrity',pulled(authors[100])?'defer-pull':'fanout','pending',`${pulled(authors[100])?0:100000} celebrity inbox writes; ${fanout} total publish writes.`,{fanout});
+  for(let i=0;i<10;i++) {
+    const id=`reader-cohort-${i}`;t.sample(id,`Reader cohort ${i+1}`,'visitor');
+    t.emit(0,id,'inboxes','read','pending',`${pushCount} pushed authors; cached coverage ${round(cached*100)}%.`,{quantity:100});
+    t.emit(1,id,'celebrity','pull','pending',`${pullCount} author timelines pulled.`);
+    t.emit(2,id,'cache','merge','pending',`Chronological authors: ${chronology.join(', ')}.`,{chronology});
+    t.settle(3,id,'cache','completed','Chronological feed assembled; budget assessed separately.',100,{modeledLatency:latency});
+  }
   return finish(level,met,[metric('Publish fanout',fanout,'writes',met[0]),metric('Read model latency',latency,'ms',met[1]),metric('Read assembly',assembly,'operations',met[2]),metric('Authors pulled per read',pullCount,'authors',pullCount<=2)],
     `Publication creates ${fanout} inbox writes. Each read pulls ${pullCount} authors and merges their posts with cached inbox entries in descending publication order.`,
     fanout>15000 ? 'Use hybrid routing with a threshold below the celebrity’s 100,000 followers.' : latency>90 ? 'Cache ordinary inboxes and avoid pulling every ordinary author at read time.' : 'Increase cached inbox coverage to reduce repeated read assembly.',
     {count:1000,delivered:1000,events:[event('ranking',`Chronological author IDs: ${chronology.join(', ')}.`)],bottleneck:fanout>15000?'Celebrity fanout':'Read assembly'});
 }
 
-function chat(level,c) {
+function chat(level,c,t) {
   const arrivals=[1,3,2];if(c.history&&c.replay)arrivals.push(4,5,6);arrivals.push(7,7,8);
   const display=[],pending=new Set(),seen=new Set();let next=1,duplicate=0;
-  for(const sequence of arrivals) {
-    if(c.ordering){
-      if(seen.has(sequence)){duplicate++;continue;}seen.add(sequence);pending.add(sequence);
-      while(pending.has(next)){display.push(next);pending.delete(next);next++;}
-    }else display.push(sequence);
+  const liveLatency=c.transport==='socket'?40:1000;
+  t.input(0,8,'connection','Eight distinct messages; message 7 has one repeated arrival.');
+  for(let sequence=1;sequence<=8;sequence++) {
+    const id=`message-${sequence}`;t.sample(id,`Message ${sequence}`,'courier');
+    t.emit(0,id,'connection','send','pending',`Sequence ${sequence}.`,{version:sequence});
+    if(c.history)t.emit(1,id,'history','persist','persisted','History stores the sequence before a durable acknowledgment.',{version:sequence});
+    t.emit(2,id,'connection','ack',c.history?'accepted':'volatile',c.history?'Durable history acknowledges message.':'Live transport alone provides no durable history.');
+    if(sequence>=4&&sequence<=6) {
+      t.emit(3,id,'connection','offline','pending','Receiver offline for this sequence.');
+      if(!(c.history&&c.replay))t.settle(liveLatency,id,c.history?'history':'connection',c.history?'retained':'lost',c.history?'Message remains in history but is not replayed.':'Offline message has no durable history.');
+    }
   }
+  let arrivalIndex=0;
+  const displayed=new Set();
+  for(const sequence of arrivals) {
+    const id=`message-${sequence}`,time=liveLatency+(arrivalIndex++);
+    t.emit(time,id,sequence>=4&&sequence<=6?'history':'connection',sequence>=4&&sequence<=6?'replay':'arrive','pending',`Arrival sequence ${sequence}.`,{version:sequence});
+    if(c.ordering){
+      if(seen.has(sequence)){duplicate++;t.emit(time,id,'sync','suppress','suppressed','Repeated arrival suppressed; no second display side effect.');continue;}seen.add(sequence);pending.add(sequence);
+      t.emit(time,id,'sync','buffer','pending',`Wait for contiguous cursor ${next}.`,{version:sequence,cursor:next-1});
+      while(pending.has(next)){display.push(next);pending.delete(next);displayed.add(next);t.settle(time,`message-${next}`,'sync','completed',`Display sequence ${next}; advance contiguous cursor.`,1,{version:next,cursor:next});next++;}
+    }else {display.push(sequence);if(!displayed.has(sequence)){displayed.add(sequence);t.settle(time,id,'sync','completed',`Display immediately in arrival order: ${sequence}.`,1,{version:sequence});}else t.emit(time,id,'sync','display','duplicate','Repeated arrival produces duplicate display side effect.',{version:sequence});}
+  }
+  for(const sequence of pending)t.settle(liveLatency+arrivals.length,`message-${sequence}`,'sync','retained','Message remains buffered behind an unresolved gap.');
   const unique=new Set(display).size;
   const inversions=display.slice(1).reduce((sum,value,i)=>sum+(value<=display[i]),0);
   const gaps=[4,5,6].filter(id=>!display.includes(id)).length;
@@ -346,7 +473,7 @@ export function getSuggestions(prefix='',options={}) {
   const node=trieNode(buildTrie(corpus(c.refresh<=60)),c.prefix);
   return node?node.top.map(term=>({...term})):[];
 }
-function autocomplete(level,c) {
+function autocomplete(level,c,t) {
   const fresh=c.refresh<=60,entries=corpus(fresh),root=buildTrie(entries),node=trieNode(root,c.prefix);
   let suggestions,work;
   if(c.strategy==='scan'){suggestions=ranked(entries.filter(term=>term.text.startsWith(c.prefix)));work=entries.length;}
@@ -355,37 +482,70 @@ function autocomplete(level,c) {
   const correct=JSON.stringify(suggestions)===JSON.stringify(expected)&&suggestions.every(term=>term.text.startsWith(c.prefix));
   const latency=2+work*(c.strategy==='scan'?1.8:.7);
   const met=[correct,fresh,latency<=20];
+  t.input(0,1,'library','One prefix query uses the selected popularity snapshot.');
+  t.sample('query',`Prefix ${c.prefix||'(root)'}`,'visitor');
+  t.emit(0,'query','aggregator','snapshot','pending',fresh?'Recent popularity update is present.':'Serving snapshot predates the popularity update.',{version:fresh?'fresh':'stale'});
+  t.emit(1,'query','library','query','pending',`Read ${entries.length} corpus terms.`);
+  t.emit(2,'query','trie',c.strategy==='scan'?'scan':'walk','pending',`${work} inspected entries or trie steps.`,{work});
+  t.settle(latency,'query','trie','completed',`Ranked results: ${suggestions.map(term=>term.text).join(', ')||'no matches'}.`,1,{version:fresh?'fresh':'stale'});
   return finish(level,met,[metric('Matching suggestions',suggestions.length,'/5',correct),metric('Popularity snapshot age',fresh?c.refresh:Math.min(c.refresh,300),'s',fresh),metric('Inspected entries or trie steps',work,'steps',latency<=20),metric('Query model latency',latency,'ms',met[2])],
     `Prefix “${c.prefix}” returns ${suggestions.map(term=>`${term.text} (${term.frequency})`).join(', ')||'no matches'}. Modeled work is ${work} steps; sync rose from 60 to 140 searches in the recent update.`,
     !fresh ? 'Refresh popularity within 60 seconds so the new ranking reaches serving nodes.' : c.strategy==='scan' ? 'Use a trie to follow the prefix rather than inspect the entire corpus.' : 'Cache the top five at each trie node to avoid walking a broad subtree.',
     {count:1,delivered:1,suggestions:suggestions.map(term=>({...term})),events:[event('prefix',`Walked prefix: ${c.prefix||'(root)'}.`)],bottleneck:'Prefix lookup'});
 }
 
-function cinema(level,c) {
+function cinema(level,c,t) {
   const jobs=[{id:'upload',deps:[],duration:1},{id:'probe',deps:['upload'],duration:1}];
   const bitrates=c.renditions==='adaptive'?[.6,1.6,3.5]:[3.5];
   for(const bitrate of bitrates)jobs.push({id:`encode-${bitrate}`,deps:['probe'],duration:bitrate===3.5?8:4,fail:bitrate===3.5});
   jobs.push({id:'manifest',deps:bitrates.map(b=>`encode-${b}`),duration:.5});
   const completed=new Map(),events=[];
+  t.input(0,jobs.length,'upload','Upload source, probe, rendition jobs, and manifest form the declared DAG.');
   for(const job of jobs) {
-    if(job.deps.some(dep=>!completed.has(dep))){events.push(event('blocked',`${job.id} waits for missing dependencies.`));continue;}
+    t.sample(job.id,job.id,job.fail?'technician':'operator');
+    if(job.id!=='upload')t.emit(0,job.id,'upload',c.pipeline==='queue'?'queue':'schedule','pending',`${job.id} waits for ${job.deps.join(', ')}.`,{dependencies:job.deps});
+  }
+  t.emit(0,'upload','upload','arrive','pending','Source upload begins.');
+  for(const job of jobs) {
+    if(job.deps.some(dep=>!completed.has(dep))){
+      events.push(event('blocked',`${job.id} waits for missing dependencies.`));
+      t.settle(Math.max(0,...completed.values()),job.id,'transcode','retained',`${job.id} blocked by missing dependencies: ${job.deps.filter(dep=>!completed.has(dep)).join(', ')}.`,1,{dependencies:job.deps});continue;
+    }
     const start=Math.max(0,...job.deps.map(dep=>completed.get(dep)));
-    if(job.fail&&!c.retry){events.push(event('failed',`${job.id} fails on its first worker attempt.`));continue;}
+    const site=job.id==='upload'?'upload':'transcode';
+    t.emit(start,job.id,site,'work','pending',`Dependencies ready; ${job.duration} s of work begins.`,{dependencies:job.deps,attempt:1});
+    if(job.fail&&!c.retry){events.push(event('failed',`${job.id} fails on its first worker attempt.`));t.settle(start+job.duration,job.id,site,'retained','Encoder failed; rendition remains unfinished.',1,{attempt:1});continue;}
+    if(job.fail) {
+      t.emit(start+job.duration,job.id,site,'provider-failure','pending','First encoder attempt fails.',{attempt:1});
+      t.emit(start+job.duration,job.id,site,'retry','pending','Retry the failed rendition; manifest remains gated.',{attempt:2});
+    }
     const end=start+job.duration+(job.fail?job.duration:0);completed.set(job.id,end);
     events.push(event(job.fail?'retry':'encoded',`${job.id} completes at ${end} s.`));
+    t.emit(end,job.id,site,'persist','persisted',`${job.id} result is ready.`,{attempt:job.fail?2:1});
+    t.settle(end,job.id,site,'completed',`${job.id} completes at ${end} s.`,1,{attempt:job.fail?2:1});
   }
   const ready=bitrates.filter(b=>completed.has(`encode-${b}`));
   const uploadAck=c.pipeline==='queue'?1:Math.max(...completed.values());
+  t.emit(uploadAck,'upload','upload','ack','accepted',`Upload acknowledgment at ${uploadAck} s; final readiness is separate.`,{uploadAck});
   let buffer=0,startup=0,rebuffer=0,bytes=0;const chosen=[];
+  let playbackTime=completed.get('manifest')||Math.max(0,...completed.values());
+  t.input(playbackTime,level.scenario.bandwidthMbps.length,'cdn','Six viewer segments requested after the manifest readiness check.');
+  // One viewer represents the sequential segment stream; DAG samples occupy the other slots.
+  t.sample('viewer','Viewer segment stream','visitor');
+  t.emit(playbackTime,'viewer','upload','request','pending','Viewer waits for a playable manifest.');
   if(completed.has('manifest'))for(const [i,bandwidth] of level.scenario.bandwidthMbps.entries()) {
     const safe=ready.filter(b=>b<=bandwidth*.75);
     const bitrate=c.renditions==='adaptive'?Math.max(...(safe.length?safe:[Math.min(...ready)])):3.5;
     const transfer=bitrate*2/bandwidth+(c.cdn?.15:.8);
+    t.emit(playbackTime,'viewer','cdn','request','pending',`Segment ${i+1}: ${bitrate} Mbps at ${bandwidth} Mbps bandwidth.`,{segment:i+1,bitrate,bandwidth,buffer});
+    if(i>0&&transfer>buffer)t.emit(playbackTime+buffer,'viewer','cdn','rebuffer','pending',`Buffer depleted; wait ${round(transfer-buffer)} s.`,{segment:i+1});
+    playbackTime+=transfer;
     if(i===0)startup=transfer;
     else {rebuffer+=Math.max(0,transfer-buffer);buffer=Math.max(0,buffer-transfer);}
     buffer+=2;bytes+=bitrate*2*1e6/8;chosen.push(bitrate);
+    t.settle(playbackTime,'viewer','cdn','completed',`Segment ${i+1} delivered; buffer ${round(buffer)} s.`,1,{segment:i+1,buffer,bitrate,originBytes:bitrate*2*1e6/8*(c.cdn?.2:1)});
   }
-  else {startup=30;rebuffer=30;}
+  else {startup=30;rebuffer=30;t.settle(playbackTime,'viewer','cdn','rejected','No ready manifest; all six segment requests cannot start.',level.scenario.bandwidthMbps.length);}
   const origin=bytes*(c.cdn?.2:1)/1e6;
   const met=[ready.length===3&&completed.has('manifest')&&uploadAck<=2,startup<=3&&rebuffer<=1,completed.has('manifest')&&origin<=1.2];
   return finish(level,met,[metric('Completed renditions',ready.length,'/3',met[0]),metric('Upload acknowledgment',uploadAck,'s',uploadAck<=2),metric('Playback startup',startup,'s',startup<=3),metric('Rebuffer time',rebuffer,'s',met[1]),metric('Origin segment transfer',origin,'MB',met[2])],
@@ -394,18 +554,59 @@ function cinema(level,c) {
     {count:jobs.length+6,delivered:completed.size+(rebuffer<=1?6:0),events,bottleneck:'Encoding and playback'});
 }
 
-function drive(level,c) {
+function drive(level,c,t) {
   const s=level.scenario,base=s.baseBlocks.map(block=>hash(`block:${block}`));
   const revisions=[s.deviceA,s.deviceB].map(blocks=>blocks.map(block=>hash(`block:${block}`)));
   const changedBlockIndices=[...new Set(revisions.flatMap(revision=>revision.flatMap((block,i)=>block!==base[i]?[i]:[])))].sort((a,b)=>a-b);
   let chunks=[];
+  const candidates=[];
+  revisions.forEach((revision,device)=>revision.forEach((block,i)=>{if(c.transfer==='whole'||block!==base[i])candidates.push({block,index:i,device});}));
+  t.input(0,2,'devices','Two devices submit concurrent revisions based on metadata version 1.');
+  for(let device=0;device<2;device++) {
+    const id=`revision-${device}`;t.sample(id,`Device ${device?'B':'A'} revision`,'courier');
+    t.emit(0,id,'devices','edit','pending','Concurrent edit from shared base version 1.',{version:1,parentId:'base-v1'});
+    t.emit(1,id,'blocks','compare','pending',`${c.transfer==='delta'?'Compare block hashes':'Select whole-file blocks'}.`);
+  }
   revisions.forEach(revision=>revision.forEach((block,i)=>{if(c.transfer==='whole'||block!==base[i])chunks.push(block);}));
   const changed=chunks.length;
   if(c.dedup&&c.transfer==='delta'){const existing=new Set(base);chunks=chunks.filter(block=>{if(existing.has(block))return false;existing.add(block);return true;});}
+  if(c.dedup&&c.transfer==='delta') {
+    const existing=new Set(base);
+    for(const candidate of candidates) {
+      const duplicate=existing.has(candidate.block);existing.add(candidate.block);
+      if(duplicate)t.emit(2,`revision-${candidate.device}`,'blocks','suppress','suppressed',`Block hash ${candidate.block} already present.`,{blockHash:candidate.block});
+    }
+  }
   const retransmitted=c.resume?0:Math.min(s.interruptedAfterBlocks,chunks.length);
   const transferredBlockHashes=[...chunks.slice(0,retransmitted),...chunks];
   const bytes=(chunks.length+retransmitted)*s.blockBytes;
   const versions=c.conflicts==='preserve'?2:1;
+  const completedBeforeStop=Math.min(s.interruptedAfterBlocks,chunks.length);
+  for(let i=0;i<chunks.length;i++) {
+    const id=`chunk-${i}`;
+    t.sample(id,`Content chunk ${i+1}`,'courier');
+    if(t.has(id))t.emit(2,id,'devices','queue','pending',`Selected block hash ${chunks[i]}.`,{blockHash:chunks[i]});
+  }
+  // The actual transmitted sequence is exposed unchanged in the existing visual contract.
+  transferredBlockHashes.forEach((blockHash,i)=>{
+    const initial=i<completedBeforeStop;
+    const resumedIndex=i-retransmitted;
+    const chunkIndex=initial?i:Math.max(0,resumedIndex);
+    const id=`chunk-${chunkIndex}`,step=3+i*2+(i>=completedBeforeStop?2:0);
+    if(i===completedBeforeStop) {
+      t.emit(step-1,'revision-0','devices','interrupted','pending',`Connection stops after ${completedBeforeStop} completed block(s).`);
+      t.emit(step,'revision-0','devices',c.resume?'resume':'restart','pending',c.resume?`Resume after durable cursor ${completedBeforeStop}.`:'Restart repeats already completed chunks.',{cursor:c.resume?completedBeforeStop:0});
+    }
+    t.emit(step,id,'blocks','transfer','pending',`Transfer block hash ${blockHash}.`,{blockHash,retransmission:i>=completedBeforeStop&&i<completedBeforeStop+retransmitted});
+    t.emit(step+1,id,'blocks','persist','persisted','Block content durably stored.',{blockHash});
+    t.emit(step+1,id,'devices','ack','completed',`Durable block receipt for hash ${blockHash}.`,{blockHash,cursor:i+1});
+  });
+  const versionStep=6+transferredBlockHashes.length*2;
+  for(let device=0;device<2;device++) {
+    const id=`revision-${device}`,preserved=device===1||c.conflicts==='preserve';
+    t.emit(versionStep,id,'versions','conflict','pending','Both revisions share the same base metadata version.',{parentId:'base-v1',version:device+2});
+    t.settle(versionStep+1,id,'versions',preserved?'completed':'lost',preserved?'Concurrent revision retained as a metadata branch.':'Last writer overwrites this concurrent revision.',1,{parentId:'base-v1',version:device+2});
+  }
   const met=[versions===2,bytes<=2000000,retransmitted===0];
   return finish(level,met,[metric('Preserved concurrent revisions',versions,'/2',met[0]),metric('Transferred block content',bytes/1e6,'MB',met[1]),metric('Retransmitted completed chunks',retransmitted,'chunks',met[2]),metric('Candidate changed chunks',changed,'chunks',c.transfer==='delta'),metric('Unique new chunks',chunks.length,'chunks',c.dedup)],
     `Hash comparison selected ${changed} candidate chunks; ${c.transfer==='delta'?'block deduplication':'whole-file transfer'} left ${chunks.length}. The interrupted transfer ${c.resume?'continued at its cursor':'restarted completed work'}. Metadata reconciliation retained ${versions} revision(s).`,
@@ -413,7 +614,7 @@ function drive(level,c) {
     {count:chunks.length+retransmitted,delivered:chunks.length+retransmitted,events:[event('delta',`New block hashes: ${chunks.join(', ')}.`),event('interrupted','Transfer stops after one completed chunk, then reconnects.'),event('conflict',`${versions} revision(s) retained from base metadata version 1.`)],bottleneck:'Block transfer',visual:{changedBlockIndices,transferredBlockHashes}});
 }
 
-function capstone(level,c) {
+function capstone(level,c,t) {
   const survivors=Math.floor(c.servers/2),webCapacity=survivors*300;
   const servingWork=1800*(1-c.cache/100*.75),databaseWork=1800*(.1+.9*(1-c.cache/100));
   const databaseCapacity=c.replication?600:260;
@@ -424,6 +625,23 @@ function capstone(level,c) {
   const cost=c.servers*16+c.cache*.2+(c.replication?20:0)+(c.queue?12:0)+(c.failover?10:0);
   const met=[served>=.95&&latency<=150,durable===100&&backlog===0,cost<=160];
   const bottleneck=!c.failover?'Regional routing':servingWork/webCapacity>databaseWork/databaseCapacity?'Surviving serving nodes':'Database';
+  t.input(0,240,'ingress','240 accepted-work equivalents encounter regional loss; analytical preservation and backlog are separate from request capacity.');
+  const lost=240*(1-durable/100),preserved=240-lost;
+  const retained=Math.min(preserved,backlog),completed=preserved-retained;
+  t.emit(0,null,'ingress','capacity','pending',`${round(1800*served)} / 1800 request equivalents can be served after the incident.`,{requests:1800,served:1800*served,latency});
+  t.emit(1,null,'failover','failure','pending',`${c.servers-survivors} serving nodes and one data region fail.`);
+  for(const [outcome,quantity] of [['completed',completed],['retained',retained],['lost',lost]]) {
+    if(!quantity)continue;
+    const batches=outcome==='completed'?4:outcome==='lost'?4:2;
+    for(let i=0;i<batches;i++) {
+      const id=`${outcome}-jobs-${i}`;t.sample(id,`${outcome} accepted-work cohort ${i+1}`,'courier');
+      t.emit(0,id,'ingress','accepted','accepted',`${quantity/batches} accepted-work equivalents; cohort identity is an aggregate sample.`,{quantity:quantity/batches});
+      t.emit(0,id,'replicas',c.replication?'persist':'volatile','pending',c.replication?'Architecture enables replicated accepted state.':'Architecture has no surviving accepted-state replica.');
+      t.emit(0,id,'queue',c.queue?'persist':'volatile','pending',c.queue?'Architecture enables durable background queues.':'Architecture has no durable background queue.');
+      t.emit(1,id,'failover',c.failover?'reroute':'stranded','pending',c.failover?'Surviving nodes receive rerouted work.':'Regional routing remains stranded.');
+      t.settle(2,id,outcome==='lost'?'replicas':'queue',outcome,outcome==='completed'?'Preserved work equivalents clear the modeled backlog.':outcome==='retained'?'Analytically preserved work equivalents remain in the modeled backlog; partial preservation does not identify a retention store.':'Accepted-work equivalents are lost under the modeled regional preservation fraction.',quantity/batches);
+    }
+  }
   return finish(level,met,[metric('Requests served after region loss',served*100,'%',met[0]),metric('Incident model latency',latency,'ms',latency<=150),metric('Accepted work preserved',durable,'%',durable===100),metric('Background backlog',backlog,'jobs',backlog===0),metric('Architecture cost',cost,'coins',met[2]),metric('Surviving nodes',survivors,'nodes',true)],
     `${survivors} serving nodes survive. ${bottleneck} is the limiting stage. Read offload leaves ${round(databaseWork)} database operations; durability requires both replicated state and a surviving job queue.`,
     !c.failover ? 'Reroute around the lost region, then inspect surviving capacity.' : !c.replication||!c.queue ? 'Protect acknowledged state with replication and background jobs with a durable queue.' : cost>160 ? 'Trim cost while keeping enough surviving capacity and read offload.' : 'Increase surviving serving capacity or read-cache offload until the chain clears the surge.',
@@ -433,5 +651,7 @@ function capstone(level,c) {
 const models=[scale,estimate,framework,limiter,hashing,vaults,ids,shortener,crawler,notifications,feed,chat,autocomplete,cinema,drive,capstone];
 export function evaluateLevel(id,config={},options={}) {
   const level=getLevel(id);
-  return models[level.id-1](level,configuration(level,config),options);
+  const trace=createTrace(level,[4,8,9,10,12,13].includes(level.id)?'ms':level.id===14?'s':'steps');
+  const result=models[level.id-1](level,configuration(level,config),trace,options);
+  return {...result,trace:trace.finish()};
 }

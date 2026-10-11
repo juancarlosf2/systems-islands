@@ -10,9 +10,12 @@ Keep a change focused on the modules that own its behavior. When working alongsi
 | --- | --- |
 | `src/game/levels.js` | Sixteen chapter schemas, controls, briefs, guide notes, objectives, landmarks and teaching workloads. |
 | `src/game/simulation.js` | Deterministic evaluators, input bounds, metrics, event traces, suggestions and visual result data. |
+| `src/game/interaction.js`, `tests/interaction.test.js` | Trace collection, full-workload counters, elapsed snapshots and contextual configuration patches. |
 | `tests/simulation.test.js` | Mission invariants, defaults/solutions, policy alternatives and simulation boundary cases. |
 | `src/App.jsx`, `src/ui/` | Expedition state, trials, native controls/dialogs, keyboard behavior, progress and settings. |
+| `src/ui/playbackClock.js`, `tests/playbackClock.test.js` | Accumulated pause/resume/step presentation clock. |
 | `src/World.jsx`, `src/world.css` | GLB loading, Three.js rendering, inspection, crew navigation, staffing, consequences and lifecycle cleanup. |
+| `src/rendering/crewPlayback.js`, `tests/crewPlayback.test.js` | Compiled sampled-job routes, reservations, role poses and deterministic playback sampling. |
 | `src/styles.css` | Retro DOM interface styling; world rendering is managed separately. |
 | `scripts/build-worlds.py`, `scripts/build-worker.py` | Blender authoring, native scene saves, GLB exports, renders and manifest generation. |
 | `art/blender/`, `art/renders/`, `public/models/`, `public/asset-manifest.json` | Editable scenes, art renders, shipped models and asset metadata. |

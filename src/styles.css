@@ -249,3 +249,37 @@ kbd{border:2px solid var(--ink);border-radius:0;box-shadow:2px 2px 0 var(--ink);
 .island-marker:hover,.island-marker.is-current{border-color:var(--ink);background:#ccb8f1;color:var(--ink);box-shadow:4px 4px 0 var(--ink)}
 .island-marker:focus-visible{outline:3px solid #176c73;outline-offset:4px}
 .world-error,.world-event{border:3px solid var(--ink);border-radius:0;background:var(--cream);color:var(--ink);box-shadow:4px 4px 0 var(--ink)}
+
+/* Keep the primary interaction directly beneath the rendered world. */
+.chart-mode .main-content,.island-mode .main-content{display:flex;flex-direction:column;padding-top:0}
+.chart-mode .world-stage,.island-mode .world-stage{position:relative;inset:auto;flex-shrink:0}
+.chart-mode .world-stage{flex:1;min-height:310px;height:auto}
+.island-mode .world-stage{height:clamp(370px,53vh,540px)}
+.play-strip{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px;padding:18px 24px 22px;flex-shrink:0}
+.play-strip .primary,.play-strip .surface-button{min-height:44px}
+.play-progress{display:flex;align-items:center;gap:10px;min-width:0}
+.play-progress progress{width:110px;max-width:35vw;height:10px;border:2px solid var(--ink);border-radius:0;background:var(--paper);accent-color:#73599e}
+.play-progress progress::-webkit-progress-bar{background:var(--paper)}
+.play-progress progress::-webkit-progress-value{background:#73599e}
+.play-progress progress::-moz-progress-bar{background:#73599e}
+.trace-panel{margin:0 24px 20px;padding:12px 15px;border:3px solid var(--ink);background:var(--cream);box-shadow:4px 4px 0 var(--ink);font-size:11px;line-height:1.6}
+.trace-panel summary{cursor:pointer;min-height:24px;font-family:'Space Mono',monospace;font-size:10px}
+.trace-event{margin:12px 0;overflow-wrap:anywhere}
+.trace-event p,.trace-empty{font-size:12px;line-height:1.6}
+.trace-jobs,.site-actions,.site-playback{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
+.trace-jobs .landmark-chip{min-height:36px;max-width:100%;overflow-wrap:anywhere}
+.trace-jobs [aria-pressed=true],.site-actions [aria-pressed=true]{background:var(--retro-mint)}
+.trace-browse{display:flex;align-items:center;gap:14px;margin-top:14px}
+.trace-browse input{min-width:0;flex:1;accent-color:#73599e}
+.site-trace{border-top:2px solid var(--ink);margin:18px 0;padding-top:4px}
+.site-actions .surface-button{min-height:44px;max-width:100%;text-align:left}
+.play-strip button:focus-visible,.trace-panel button:focus-visible{outline:3px solid #74529e;outline-offset:4px}
+@media(max-width:1100px){.trace-panel{margin-left:17px;margin-right:17px}}
+@media(max-width:700px){
+  .chart-intro{padding-right:0}
+  .chart-mode .world-stage{min-height:310px}
+  .island-mode .world-stage{height:365px}
+  .play-strip{padding:16px 12px 20px;gap:12px}
+  .trace-panel{margin:0 12px 18px;padding:11px 13px}
+  .play-progress{justify-content:center;flex-basis:100%}
+}
