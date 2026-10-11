@@ -4,8 +4,11 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import './world.css';
 import { evaluateLevel } from './game/simulation.js';
+import { batchStaticMeshes } from './rendering/batchStaticMeshes.js';
 
 const cache = new Map();
+const navigationCache = new Map();
+const emptyConfig = Object.freeze({});
 const models = new GLTFLoader();
 const islandPositions = [
   [-10, 18], [-22, 10], [-18, -2], [-25, -14],
@@ -133,8 +136,8 @@ function createCrewNavigation(model) {
       obstacles.push({shape:'box',corners,clearance});
     }
     if(obstacle.canTip && node.geometry){
-      node.geometry.computeBoundingBox();
-      const bounds=node.geometry.boundingBox;
+      // Read exact vertex bounds without changing the shared cached geometry.
+      const bounds=new THREE.Box3().setFromBufferAttribute(node.geometry.attributes.position);
       const parentMatrix=inverse.clone().multiply(node.parent.matrixWorld);
       const swept=new THREE.Box3();
       const direction=node.position.x>0?1:-1;
@@ -292,10 +295,18 @@ export default function World(props) {
     const tracked = [];
     const labels = [];
     const chart = mode === 'chart';
+    let markersDirty = true;
+    let markerLevelId;
+    let width = 1, height = 1;
+    const projectedMarker = new THREE.Vector3();
+    let navPaths = 0;
+    let diagnosticServers = [];
     setError(null);
     element.dataset.modelsLoaded = '0';
     element.dataset.renderedFrames = '0';
     element.dataset.chapter = chart ? 'chart' : String(levelId);
+    element.dataset.workerScale = chart ? '.32 × island scale' : '.32';
+    element.dataset.doorHeight = '.46';
     try {
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
     } catch (cause) {
@@ -334,6 +345,8 @@ export default function World(props) {
     controls.maxZoom = chart ? 2.7 : 2.2;
     controls.enablePan = true;
     controls.update();
+    const invalidateMarkers = () => { markersDirty = true; };
+    controls.addEventListener('change', invalidateMarkers);
 
     scene.add(new THREE.HemisphereLight('#fff9e6', '#669c9d', 2.3));
     const sun = new THREE.DirectionalLight('#fff1dc', 3.2);
@@ -364,6 +377,7 @@ export default function World(props) {
       button.addEventListener('click', () => callbacks.current.onSelectLevel?.(id));
       element.appendChild(button);
       labels.push({ button, position: worldPosition, id });
+      markersDirty = true;
     }
 
     const ready = Promise.all([chart ? Promise.all(Array.from({length:16}, (_, i) => getModel(i + 1))) : Promise.all([getModel(levelId)]), getModel('worker')]);
@@ -374,7 +388,16 @@ export default function World(props) {
         const model = source.clone(true);
         const id = chart ? i + 1 : levelId;
         model.userData.chapterId = id;
+        // Cache normalized local routes before chart batching or any level deformation.
+        if (!navigationCache.has(id)) {
+          const navigationModel = source.clone(true);
+          navigationModel.userData.chapterId = id;
+          navigationCache.set(id, createCrewNavigation(navigationModel));
+        }
+        const navigation = navigationCache.get(id);
+        navPaths += navigation.routes.length * 2;
         if (chart) {
+          batchStaticMeshes(model);
           const [x,z] = islandPositions[i];
           model.scale.setScalar(id === 1 ? .95 : .69);
           model.position.set(x, -.8, z);
@@ -414,7 +437,6 @@ export default function World(props) {
           dynamic.servers.sort((a,b)=>a.index-b.index);
         }
         root.add(model);
-        const navigation = createCrewNavigation(model);
         for (let j = 0; j < (chart ? 2 : 10); j++) {
           const actor = workerSource.clone(true);
           actor.scale.setScalar(.32);
@@ -430,6 +452,8 @@ export default function World(props) {
       });
       dynamic.modelsLoaded = scenes.length;
       dynamic.ready = true;
+      diagnosticServers = dynamic.nodes.filter(({object}) => /^server_\d+$/.test(object.name));
+      element.dataset.navPaths = String(navPaths);
       if (chart) {
         for (let i = 0; i < 15; i++) {
           const a = islandPositions[i], b = islandPositions[i + 1];
@@ -460,7 +484,8 @@ export default function World(props) {
     });
 
     const resize = () => {
-      const width = Math.max(1, element.clientWidth), height = Math.max(1, element.clientHeight);
+      width = Math.max(1, element.clientWidth);
+      height = Math.max(1, element.clientHeight);
       renderer.setSize(width, height);
       const aspect = width / height;
       const half = chart ? Math.max(32, 32 / aspect) : 7;
@@ -469,6 +494,7 @@ export default function World(props) {
       camera.top = half;
       camera.bottom = -half;
       camera.updateProjectionMatrix();
+      markersDirty = true;
     };
     const observer = new ResizeObserver(resize);
     observer.observe(element);
@@ -495,6 +521,9 @@ export default function World(props) {
     renderer.domElement.addEventListener('pointerup', onUp);
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let previous = 0;
+    let diagnosticTime = -Infinity;
+    let rendererDiagnosticTime = -Infinity;
+    let renderedFrames = 0;
     function animate(time) {
       if (disposed) return;
       frame = requestAnimationFrame(animate);
@@ -506,22 +535,25 @@ export default function World(props) {
       boat.rotation.y = .3;
       const motionReduced = reducedMotion.matches || current.config?.reducedMotion;
       if (!motionReduced) boat.position.y = -1.9 + Math.sin(t) * .055;
-      if (dynamic.model) updateConfiguration(dynamic, current.config || {}, tracked, current, scene, t);
+      const configurationChanged = dynamic.model && updateConfiguration(dynamic, current.config || emptyConfig, tracked, current, scene, t);
       animateWorld(dynamic, current, t, motionReduced, chart);
-      element.dataset.workforceCount = String(chart ? dynamic.actors.length : dynamic.workforce || 0);
-      element.dataset.visiblePeople = String(dynamic.actors.filter(a => a.object.visible).length);
-      element.dataset.workerScale = chart ? '.32 × island scale' : '.32';
-      element.dataset.doorHeight = '.46';
-      element.dataset.navPaths = String(new Set(dynamic.actors.map(a=>a.navigation)).size ? [...new Set(dynamic.actors.map(a=>a.navigation))].reduce((n,nav)=>n+nav.routes.length*2,0) : 0);
-      element.dataset.blockingIntersections = String(dynamic.actors.filter(a=>a.object.visible && !a.navigation.isClear(a.object.position)).length);
-      element.dataset.visibleServers = String(dynamic.nodes.filter(({object}) => /^server_\d+$/.test(object.name) && object.visible).length);
-      element.dataset.damageType = dynamic.damage.type;
-      element.dataset.damageSeverity = String(dynamic.damage.severity);
-      element.dataset.routeCount = String(dynamic.packetRoutes.length);
-      // Cached GLB geometries must have at most one listener from the active renderer.
-      let listenerMaximum = 0;
-      root.traverse(o => { if(o.geometry) listenerMaximum = Math.max(listenerMaximum, o.geometry._listeners?.dispose?.length || 0); });
-      element.dataset.maxGeometryDisposeListeners = String(listenerMaximum);
+      if (configurationChanged || time - diagnosticTime >= 500) {
+        diagnosticTime = time;
+        let visiblePeople = 0, blockingIntersections = 0, visibleServers = 0;
+        for (const actor of dynamic.actors) {
+          if (!actor.object.visible) continue;
+          visiblePeople++;
+          if (!actor.navigation.isClear(actor.object.position)) blockingIntersections++;
+        }
+        for (const {object} of diagnosticServers) if (object.visible) visibleServers++;
+        element.dataset.workforceCount = String(chart ? dynamic.actors.length : dynamic.workforce || 0);
+        element.dataset.visiblePeople = String(visiblePeople);
+        element.dataset.blockingIntersections = String(blockingIntersections);
+        element.dataset.visibleServers = String(visibleServers);
+        element.dataset.damageType = dynamic.damage.type;
+        element.dataset.damageSeverity = String(dynamic.damage.severity);
+        element.dataset.routeCount = String(dynamic.packetRoutes.length);
+      }
       if(!chart){
         const events=current.result?.events||[];
         const index=Math.min(events.length-1,Math.floor((t-(dynamic.start||t))/1.6));
@@ -553,23 +585,40 @@ export default function World(props) {
           if (i / dynamic.packets.length < droppedRatio && phase > .78) p.position.y -= motionReduced ? 1.2 : (phase-.78)*8;
         }
       });
-      labels.forEach(({button,position,id}) => {
-        button.classList.toggle('is-current',id === callbacks.current.level?.id);
-        const projected = position.clone().project(camera);
-        const x=(projected.x*.5+.5)*element.clientWidth;
-        const y=(-projected.y*.5+.5)*element.clientHeight;
-        button.style.transform = `translate(${x}px,${y}px) translate(-50%,-50%)`;
-        button.style.visibility = projected.z > 1 || projected.z < -1 || x < 0 || x > element.clientWidth || y < 0 || y > element.clientHeight ? 'hidden' : 'visible';
-      });
+      if (markerLevelId !== current.level?.id) {
+        markerLevelId = current.level?.id;
+        labels.forEach(({button,id}) => button.classList.toggle('is-current', id === markerLevelId));
+        markersDirty = true;
+      }
+      if (markersDirty) {
+        markersDirty = false;
+        labels.forEach(({button,position}) => {
+          projectedMarker.copy(position).project(camera);
+          const x=(projectedMarker.x*.5+.5)*width;
+          const y=(-projectedMarker.y*.5+.5)*height;
+          button.style.transform = `translate(${x}px,${y}px) translate(-50%,-50%)`;
+          button.style.visibility = projectedMarker.z > 1 || projectedMarker.z < -1 || x < 0 || x > width || y < 0 || y > height ? 'hidden' : 'visible';
+        });
+      }
       renderer.render(scene,camera);
+      if (time - rendererDiagnosticTime >= 1000) {
+        rendererDiagnosticTime = time;
+        // Cached geometry must keep at most one listener from the active renderer.
+        let listenerMaximum = 0;
+        root.traverse(o => { if(o.geometry) listenerMaximum = Math.max(listenerMaximum, o.geometry._listeners?.dispose?.length || 0); });
+        element.dataset.maxGeometryDisposeListeners = String(listenerMaximum);
+        element.dataset.renderCalls = String(renderer.info.render.calls);
+        element.dataset.renderTriangles = String(renderer.info.render.triangles);
+      }
       // Read-only evidence used by browser acceptance checks; no gameplay bypass.
-      element.dataset.renderedFrames = String(Number(element.dataset.renderedFrames || 0) + 1);
+      element.dataset.renderedFrames = String(++renderedFrames);
     }
     frame = requestAnimationFrame(animate);
     return () => {
       disposed = true;
       cancelAnimationFrame(frame);
       observer.disconnect();
+      controls.removeEventListener('change', invalidateMarkers);
       controls.dispose();
       renderer.domElement.removeEventListener('pointerdown',onDown);
       renderer.domElement.removeEventListener('pointerup',onUp);
@@ -603,11 +652,15 @@ function updateConfiguration(dynamic, config, tracked, current, scene, time) {
   if (current.running && !dynamic.running) dynamic.start = time;
   dynamic.running = current.running;
   const phase = current.running ? Math.min(3, Math.floor((time - (dynamic.start ?? time)) / 1.5)) : 4;
-  const configKey = JSON.stringify(config);
-  if (dynamic.configKey !== configKey) {
-    dynamic.configKey = configKey;
-    dynamic.forecast = evaluateLevel(dynamic.chapterId, config);
+  if (dynamic.configReference !== config) {
+    dynamic.configReference = config;
+    const configKey = JSON.stringify(config);
+    if (dynamic.configKey !== configKey) {
+      dynamic.configKey = configKey;
+      dynamic.forecast = evaluateLevel(dynamic.chapterId, config);
+    }
   }
+  const configKey = dynamic.configKey;
   const fingerprint = `${configKey}:${Boolean(current.running)}:${phase}`;
   if (dynamic.configuration === fingerprint && dynamic.result === current.result) return;
   dynamic.configuration = fingerprint;
@@ -711,6 +764,7 @@ function updateConfiguration(dynamic, config, tracked, current, scene, time) {
   if (!dynamic.packetRoutes.length) {
     const positions = [...dynamic.centers.values()];addRoute(positions[0],positions[1]);
   }
+  return true;
 }
 
 function hazardFor(id, failed, result) {

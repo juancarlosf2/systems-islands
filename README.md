@@ -10,14 +10,14 @@ React, Three.js and Motion power the game. A minimal retro interface keeps the m
 
 ## Download and play
 
-The [v1.0.0 release](https://github.com/juancarlosf2/systems-islands/releases/tag/v1.0.0) packages the game and screenshot grid:
+The [v1.0.1 release](https://github.com/juancarlosf2/systems-islands/releases/tag/v1.0.1) packages the game and screenshot grid:
 
 | File | Use |
 | --- | --- |
-| [systems-islands-offline.html](https://github.com/juancarlosf2/systems-islands/releases/download/v1.0.0/systems-islands-offline.html) | Download and open directly in a modern browser. No server or internet connection is required. |
-| [systems-islands-static.zip](https://github.com/juancarlosf2/systems-islands/releases/download/v1.0.0/systems-islands-static.zip) | Conventional static-site output with dependency notices, for your own hosting. |
-| [systems-islands-grid-full.png](https://github.com/juancarlosf2/systems-islands/releases/download/v1.0.0/systems-islands-grid-full.png) | Full-resolution screenshot grid. |
-| [systems-islands-grid-share.jpg](https://github.com/juancarlosf2/systems-islands/releases/download/v1.0.0/systems-islands-grid-share.jpg) | Smaller screenshot grid for sharing. |
+| [systems-islands-offline.html](https://github.com/juancarlosf2/systems-islands/releases/download/v1.0.1/systems-islands-offline.html) | Download and open directly in a modern browser. No server or internet connection is required. |
+| [systems-islands-static.zip](https://github.com/juancarlosf2/systems-islands/releases/download/v1.0.1/systems-islands-static.zip) | Conventional static-site output with dependency notices, for your own hosting. |
+| [systems-islands-grid-full.png](https://github.com/juancarlosf2/systems-islands/releases/download/v1.0.1/systems-islands-grid-full.png) | Full-resolution screenshot grid. |
+| [systems-islands-grid-share.jpg](https://github.com/juancarlosf2/systems-islands/releases/download/v1.0.1/systems-islands-grid-share.jpg) | Smaller screenshot grid for sharing. |
 
 The specifically named **`systems-islands-offline.html`** embeds the game, fonts, styles, all sixteen GLB worlds and the maintenance crew. The ordinary **`dist/index.html` needs static hosting**; use the offline edition for direct `file://` play. GitHub stores the source and release downloads; these links do not represent a hosted game. See [deployment instructions](docs/DEPLOYMENT.md) to host it yourself.
 
@@ -63,6 +63,7 @@ The chapter route covers scaling, estimation, design frameworks, rate limiting, 
 The sequence follows the supplied sixteen-chapter edition of Alex Xu's *System Design Interview: An Insider's Guide*. All missions, explanations and scenarios are original. The reference PDF and extracted full text are excluded from the public repository. The capstone is an original exercise, rather than an exercise reproduced from the book.
 
 - [Game plan](docs/GAME_PLAN.md): chapter missions, asset contracts, shared interfaces and design decisions.
+- [Interaction roadmap](docs/INTERACTION_ROADMAP.md): proposed site-specific NPC jobs, player actions and rules for all sixteen missions, plus measured rendering improvements.
 - [Validation evidence](docs/VALIDATION.md): recorded gameplay, asset, navigation, offline and interface checks, with coverage limits.
 - [Contributing](docs/CONTRIBUTING.md): module responsibilities, simulation changes and Blender editing/export.
 - [Deployment](docs/DEPLOYMENT.md): static hosting and the portable edition.
