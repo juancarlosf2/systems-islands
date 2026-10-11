@@ -1,0 +1,22 @@
+{
+  "screens": [
+    {
+      "id": 1,
+      "path": "output/screens/chapter-01-phone.png",
+      "dimensions": {
+        "width": 430,
+        "content": 430,
+        "height": 1289
+      }
+    },
+    {
+      "id": 2,
+      "path": "output/screens/chapter-02-phone.png",
+      "dimensions": {
+        "width": 430,
+        "content": 430,
+        "height": 1264
+      }
+    }
+  ]
+}

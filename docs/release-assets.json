@@ -1,0 +1,100 @@
+{
+  "portableBytes": 20963856,
+  "portableMiB": 19.99,
+  "embeddedModels": 17,
+  "externalScriptTags": 0,
+  "externalStylesheetTags": 0,
+  "motionVersion": "14.1.0",
+  "assets": [
+    {
+      "asset": "chapter-01.glb",
+      "bytes": 1567988,
+      "sha256": "f37598673011d0213f3c459159f4e18f7fc47259e0929027f4e911ef2caeb2d7"
+    },
+    {
+      "asset": "chapter-02.glb",
+      "bytes": 597180,
+      "sha256": "ebd3166972156d4063aab4faccac6ff7e97d890546694eaf0fec2626657b3090"
+    },
+    {
+      "asset": "chapter-03.glb",
+      "bytes": 617676,
+      "sha256": "c2f8d010e0e26e4ec23ab068a8a63564d6a4d3672987eed147877d01edf928b7"
+    },
+    {
+      "asset": "chapter-04.glb",
+      "bytes": 585916,
+      "sha256": "b7acdbb27e319e14eae81466d97dc0ce9c056d06d44f99d0c1586d63d040cc30"
+    },
+    {
+      "asset": "chapter-05.glb",
+      "bytes": 1257400,
+      "sha256": "b5e73dacc782a685303710d898b7ffc0bc4830ae4fd38b149fe15232fae3edfb"
+    },
+    {
+      "asset": "chapter-06.glb",
+      "bytes": 1136364,
+      "sha256": "04fbe25e7a8b132f574c8040416b033b8f0768faa3c56900d4144e9d862e3f1e"
+    },
+    {
+      "asset": "chapter-07.glb",
+      "bytes": 734772,
+      "sha256": "7957c88b7983b495edec441e73e8ffccf0deb13f67be9f17ee73c261e856713b"
+    },
+    {
+      "asset": "chapter-08.glb",
+      "bytes": 748204,
+      "sha256": "1a4f831ad15bd6c7c1003c8632fc3d8b9d9562380a318a695dd60335af2d4947"
+    },
+    {
+      "asset": "chapter-09.glb",
+      "bytes": 674000,
+      "sha256": "6205f898612cbfd8a66968b191568cb78247a4061948684beb0df46330e538bf"
+    },
+    {
+      "asset": "chapter-10.glb",
+      "bytes": 815288,
+      "sha256": "d8303fcfbf236aaf3bfd3beec2761680c24e0d2f8fce5819921483d580934180"
+    },
+    {
+      "asset": "chapter-11.glb",
+      "bytes": 969524,
+      "sha256": "fae68a4cbbc944864c55f873059bd6230e0149c773b1fd67ddbc7cae1b4577c2"
+    },
+    {
+      "asset": "chapter-12.glb",
+      "bytes": 868240,
+      "sha256": "9ab83e80f65b6b902bb29744bf7834e65e967628f080979e053225fff81d2912"
+    },
+    {
+      "asset": "chapter-13.glb",
+      "bytes": 630232,
+      "sha256": "8d691453c6eee74664f15c6f3597d53ea405c12120d2cb6b552c485b54b05e78"
+    },
+    {
+      "asset": "chapter-14.glb",
+      "bytes": 756956,
+      "sha256": "03b7e9df02ff6087cf09f744f3726b0897ca69b41fac6f1413d06fb45c60a665"
+    },
+    {
+      "asset": "chapter-15.glb",
+      "bytes": 933132,
+      "sha256": "566915eb21e12fd2d2e5d1f5b459b340e10cf0135ae96dd976ffc2df46c208a8"
+    },
+    {
+      "asset": "chapter-16.glb",
+      "bytes": 1399976,
+      "sha256": "1990f5448da1828da4c562a4628115ab6a346d963394e1458868ff7d73707441"
+    },
+    {
+      "asset": "worker.glb",
+      "bytes": 167448,
+      "sha256": "5da780380d346b60aaa65f9d922b0d07b69220612facfce8438a468d112c5f02"
+    }
+  ],
+  "portableSha256": "8cca08647eaba3e1d9a3fc78431757e9e29215f1eafa8ece0e778dea45938a86",
+  "thirdPartyNoticesBytes": 29211,
+  "thirdPartyNoticesEmbedded": true,
+  "cleanInstallNode": "22.23.1",
+  "runtimeUnchangedFromVerifiedOfflineBuild": true
+}

@@ -1,0 +1,30 @@
+{
+  "name": "systems-islands",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build && node scripts/build-portable.mjs",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "node --test tests/*.test.js",
+    "assets": "/Applications/Blender.app/Contents/MacOS/Blender --background --python scripts/build-worlds.py && /Applications/Blender.app/Contents/MacOS/Blender --background --python scripts/build-worker.py",
+    "validate:assets": "node scripts/validate-assets.mjs",
+    "validate:crew": "node scripts/validate-crew.mjs"
+  },
+  "dependencies": {
+    "@fontsource/barlow-condensed": "^5.2.8",
+    "@fontsource/dm-sans": "^5.2.8",
+    "@fontsource/space-mono": "^5.2.8",
+    "lucide-react": "^0.577.0",
+    "motion": "14.1.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "three": "^0.183.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.4",
+    "esbuild": "^0.28.2",
+    "vite": "^7.3.1"
+  }
+}

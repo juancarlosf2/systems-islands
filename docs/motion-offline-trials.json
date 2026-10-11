@@ -1,0 +1,48 @@
+{
+  "outcomes": [
+    {
+      "id": 1,
+      "passed": true,
+      "failureDamage": "overload",
+      "failurePeople": 2,
+      "failureResidents": 9,
+      "restoredPeople": 10,
+      "damage": 0,
+      "models": "1",
+      "score": "100 / 100"
+    },
+    {
+      "id": 2,
+      "passed": true,
+      "failureDamage": "capacity-error",
+      "failurePeople": 0,
+      "failureResidents": 10,
+      "restoredPeople": 10,
+      "damage": 0,
+      "models": "1",
+      "score": "100 / 100"
+    },
+    {
+      "id": 3,
+      "passed": true,
+      "failureDamage": "incomplete-design",
+      "failurePeople": 0,
+      "failureResidents": 10,
+      "restoredPeople": 10,
+      "damage": 0,
+      "models": "1",
+      "score": "100 / 100"
+    },
+    {
+      "id": 4,
+      "passed": true,
+      "failureDamage": "flood",
+      "failurePeople": 5,
+      "failureResidents": 10,
+      "restoredPeople": 10,
+      "damage": 0,
+      "models": "1",
+      "score": "100 / 100"
+    }
+  ]
+}

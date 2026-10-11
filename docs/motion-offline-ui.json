@@ -1,0 +1,20 @@
+{
+  "offline": true,
+  "exit": {
+    "open": true,
+    "title": "Expedition settings",
+    "inert": true,
+    "focus": "Close dialog"
+  },
+  "triggerFocusRestored": true,
+  "osReduced": {
+    "opacity": "1",
+    "transform": "none"
+  },
+  "gameReduced": {
+    "opacity": "1",
+    "transform": "none"
+  },
+  "errors": [],
+  "externalRequests": []
+}

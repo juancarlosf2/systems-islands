@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.work/
+.playwright-cli/
+*.blend1
+*.blend2
+.DS_Store
+__pycache__/
+*.py[cod]

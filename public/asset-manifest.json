@@ -1,0 +1,344 @@
+{
+  "generator": "Blender Python authored by coordinator",
+  "blender": "5.2.1 LTS",
+  "levels": [
+    {
+      "id": 1,
+      "title": "First light",
+      "model": "chapter-01.glb",
+      "bytes": 1567988,
+      "source": "art/blender/chapter-01.blend",
+      "meshCount": 285,
+      "polygonCount": 11018,
+      "landmarks": [
+        "balancer",
+        "cache",
+        "database",
+        "dock",
+        "servers"
+      ],
+      "crewAccess": {
+        "doorHeight": 0.46,
+        "workerHeight": 0.38,
+        "entrance": true,
+        "exit": true
+      }
+    },
+    {
+      "id": 2,
+      "title": "The observatory",
+      "model": "chapter-02.glb",
+      "bytes": 597180,
+      "source": "art/blender/chapter-02.blend",
+      "meshCount": 144,
+      "polygonCount": 3815,
+      "landmarks": [
+        "clock",
+        "storage",
+        "telescope"
+      ],
+      "crewAccess": {
+        "doorHeight": 0.46,
+        "workerHeight": 0.38,
+        "entrance": true,
+        "exit": true
+      }
+    },
+    {
+      "id": 3,
+      "title": "Blueprint bay",
+      "model": "chapter-03.glb",
+      "bytes": 617676,
+      "source": "art/blender/chapter-03.blend",
+      "meshCount": 170,
+      "polygonCount": 3842,
+      "landmarks": [
+        "blueprint",
+        "deepDive",
+        "scope",
+        "wrapUp"
+      ],
+      "crewAccess": {
+        "doorHeight": 0.46,
+        "workerHeight": 0.38,
+        "entrance": true,
+        "exit": true
+      }
+    },
+    {
+      "id": 4,
+      "title": "The floodgates",
+      "model": "chapter-04.glb",
+      "bytes": 585916,
+      "source": "art/blender/chapter-04.blend",
+      "meshCount": 173,
+      "polygonCount": 3600,
+      "landmarks": [
+        "gates",
+        "reservoir",
+        "service"
+      ],
+      "crewAccess": {
+        "doorHeight": 0.46,
+        "workerHeight": 0.38,
+        "entrance": true,
+        "exit": true
+      }
+    },
+    {
+      "id": 5,
+      "title": "The ring",
+      "model": "chapter-05.glb",
+      "bytes": 1257400,
+      "source": "art/blender/chapter-05.blend",
+      "meshCount": 243,
+      "polygonCount": 8966,
+      "landmarks": [
+        "compass",
+        "ring",
+        "servers"
+      ],
+      "crewAccess": {
+        "doorHeight": 0.46,
+        "workerHeight": 0.38,
+        "entrance": true,
+        "exit": true
+      }
+    },
+    {
+      "id": 6,
+      "title": "The vaults",
+      "model": "chapter-06.glb",
+      "bytes": 1136364,
+      "source": "art/blender/chapter-06.blend",
+      "meshCount": 199,
+      "polygonCount": 7686,
+      "landmarks": [
+        "partition",
+        "repair",
+        "replicas"
+      ],
+      "crewAccess": {
+        "doorHeight": 0.46,
+        "workerHeight": 0.38,
+        "entrance": true,
+        "exit": true
+      }
+    },
+    {
+      "id": 7,
+      "title": "Snowflake summit",
+      "model": "chapter-07.glb",
+      "bytes": 734772,
+      "source": "art/blender/chapter-07.blend",
+      "meshCount": 196,
+      "polygonCount": 4646,
+      "landmarks": [
+        "assembly",
+        "clock",
+        "workers"
+      ],
+      "crewAccess": {
+        "doorHeight": 0.46,
+        "workerHeight": 0.38,
+        "entrance": true,
+        "exit": true
+      }
+    },
+    {
+      "id": 8,
+      "title": "Shortcut docks",
+      "model": "chapter-08.glb",
+      "bytes": 748204,
+      "source": "art/blender/chapter-08.blend",
+      "meshCount": 183,
+      "polygonCount": 4764,
+      "landmarks": [
+        "archive",
+        "encoder",
+        "redirect"
+      ],
+      "crewAccess": {
+        "doorHeight": 0.46,
+        "workerHeight": 0.38,
+        "entrance": true,
+        "exit": true
+      }
+    },
+    {
+      "id": 9,
+      "title": "The crawler gardens",
+      "model": "chapter-09.glb",
+      "bytes": 674000,
+      "source": "art/blender/chapter-09.blend",
+      "meshCount": 191,
+      "polygonCount": 4225,
+      "landmarks": [
+        "archive",
+        "frontier",
+        "robots"
+      ],
+      "crewAccess": {
+        "doorHeight": 0.46,
+        "workerHeight": 0.38,
+        "entrance": true,
+        "exit": true
+      }
+    },
+    {
+      "id": 10,
+      "title": "Signal station",
+      "model": "chapter-10.glb",
+      "bytes": 815288,
+      "source": "art/blender/chapter-10.blend",
+      "meshCount": 181,
+      "polygonCount": 5304,
+      "landmarks": [
+        "channels",
+        "preferences",
+        "queue"
+      ],
+      "crewAccess": {
+        "doorHeight": 0.46,
+        "workerHeight": 0.38,
+        "entrance": true,
+        "exit": true
+      }
+    },
+    {
+      "id": 11,
+      "title": "The town square",
+      "model": "chapter-11.glb",
+      "bytes": 969524,
+      "source": "art/blender/chapter-11.blend",
+      "meshCount": 232,
+      "polygonCount": 6190,
+      "landmarks": [
+        "cache",
+        "celebrity",
+        "inboxes"
+      ],
+      "crewAccess": {
+        "doorHeight": 0.46,
+        "workerHeight": 0.38,
+        "entrance": true,
+        "exit": true
+      }
+    },
+    {
+      "id": 12,
+      "title": "Conversation coves",
+      "model": "chapter-12.glb",
+      "bytes": 868240,
+      "source": "art/blender/chapter-12.blend",
+      "meshCount": 197,
+      "polygonCount": 5628,
+      "landmarks": [
+        "connection",
+        "history",
+        "sync"
+      ],
+      "crewAccess": {
+        "doorHeight": 0.46,
+        "workerHeight": 0.38,
+        "entrance": true,
+        "exit": true
+      }
+    },
+    {
+      "id": 13,
+      "title": "Prefix grove",
+      "model": "chapter-13.glb",
+      "bytes": 630232,
+      "source": "art/blender/chapter-13.blend",
+      "meshCount": 176,
+      "polygonCount": 4082,
+      "landmarks": [
+        "aggregator",
+        "library",
+        "trie"
+      ],
+      "crewAccess": {
+        "doorHeight": 0.46,
+        "workerHeight": 0.38,
+        "entrance": true,
+        "exit": true
+      }
+    },
+    {
+      "id": 14,
+      "title": "Cinema cliffs",
+      "model": "chapter-14.glb",
+      "bytes": 756956,
+      "source": "art/blender/chapter-14.blend",
+      "meshCount": 189,
+      "polygonCount": 4876,
+      "landmarks": [
+        "cdn",
+        "transcode",
+        "upload"
+      ],
+      "crewAccess": {
+        "doorHeight": 0.46,
+        "workerHeight": 0.38,
+        "entrance": true,
+        "exit": true
+      }
+    },
+    {
+      "id": 15,
+      "title": "Sync sanctuary",
+      "model": "chapter-15.glb",
+      "bytes": 933132,
+      "source": "art/blender/chapter-15.blend",
+      "meshCount": 185,
+      "polygonCount": 6152,
+      "landmarks": [
+        "blocks",
+        "devices",
+        "versions"
+      ],
+      "crewAccess": {
+        "doorHeight": 0.46,
+        "workerHeight": 0.38,
+        "entrance": true,
+        "exit": true
+      }
+    },
+    {
+      "id": 16,
+      "title": "Horizon lab",
+      "model": "chapter-16.glb",
+      "bytes": 1399976,
+      "source": "art/blender/chapter-16.blend",
+      "meshCount": 229,
+      "polygonCount": 9844,
+      "landmarks": [
+        "failover",
+        "ingress",
+        "queue",
+        "replicas"
+      ],
+      "crewAccess": {
+        "doorHeight": 0.46,
+        "workerHeight": 0.38,
+        "entrance": true,
+        "exit": true
+      }
+    }
+  ],
+  "characters": [
+    {
+      "model": "worker.glb",
+      "source": "art/blender/worker.blend",
+      "bytes": 167448,
+      "role": "human maintenance crew",
+      "pivots": [
+        "worker_arm_left",
+        "worker_arm_right",
+        "worker_leg_left",
+        "worker_leg_right"
+      ]
+    }
+  ]
+}

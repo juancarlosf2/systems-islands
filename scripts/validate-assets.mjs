@@ -1,0 +1,44 @@
+import assert from 'node:assert/strict';
+import { readFile, stat } from 'node:fs/promises';
+import { resolve } from 'node:path';
+
+const root = resolve(import.meta.dirname, '..');
+const manifest = JSON.parse(await readFile(resolve(root, 'public/asset-manifest.json')));
+assert.equal(manifest.levels.length, 16);
+let total = 0;
+for (const entry of manifest.levels) {
+  const buffer = await readFile(resolve(root, 'public/models', entry.model));
+  assert.equal(buffer.readUInt32LE(0), 0x46546c67, 'GLB magic');
+  assert.equal(buffer.readUInt32LE(4), 2, 'glTF version');
+  assert.equal(buffer.readUInt32LE(8), buffer.length, 'GLB length');
+  const jsonLength = buffer.readUInt32LE(12);
+  const gltf = JSON.parse(buffer.subarray(20, 20 + jsonLength).toString().trim());
+  assert(gltf.meshes.length > 10, `Chapter ${entry.id} has environment meshes`);
+  assert(gltf.nodes.some(n => n.name === 'terrain'), 'Authored terrain exists');
+  assert(gltf.nodes.some(n => n.name === 'beacon'), 'Authored beacon exists');
+  assert.equal(gltf.nodes.filter(n=>n.extras?.crewRole==='entrance').length,1,'One authored island entrance');
+  assert.equal(gltf.nodes.filter(n=>n.extras?.crewRole==='exit').length,1,'One authored island exit');
+  const gatePosts=gltf.nodes.filter(n=>n.name?.startsWith('access_')&&n.name.includes('_post'));
+  assert.equal(gatePosts.length,4,'Two posts per entrance and exit');
+  assert(gatePosts.every(n=>n.extras?.crewObstacle),'Gate posts have collision footprints');
+  assert(gltf.nodes.some(n=>n.extras?.crewRole==='workstation'),'Outdoor workstations exist');
+  assert(gltf.nodes.some(n=>n.extras?.crewWalkBoundary?.length>=20),'Actual terrain navigation boundary exists');
+  assert(gltf.nodes.some(n=>n.extras?.doorHeight===.46),'Human-scale door opening exists');
+  for (const landmark of entry.landmarks) assert(gltf.nodes.some(n => n.extras?.landmark === landmark), `Missing ${landmark}`);
+  assert(!gltf.images?.some(i => i.uri && !i.uri.startsWith('data:')), 'No external textures');
+  assert(!gltf.buffers?.some(b => b.uri), 'GLB buffer is embedded');
+  const source = await stat(resolve(root, entry.source));
+  assert(source.size > 1000, 'Editable Blender source exists');
+  total += buffer.length;
+}
+console.log(`Validated 16 authored GLBs and native Blender scenes. Total models ${(total / 1048576).toFixed(2)} MiB. Blender ${manifest.blender}.`);
+const worker=await readFile(resolve(root,'public/models/worker.glb'));
+assert.equal(worker.readUInt32LE(0),0x46546c67);
+assert.equal(worker.readUInt32LE(4),2);
+assert.equal(worker.readUInt32LE(8),worker.length);
+const workerGltf=JSON.parse(worker.subarray(20,20+worker.readUInt32LE(12)).toString().trim());
+assert(!workerGltf.images?.some(i=>i.uri&&!i.uri.startsWith('data:')),'Crew has no external textures');
+assert(!workerGltf.buffers?.some(b=>b.uri),'Crew buffer is embedded');
+for(const name of ['worker','worker_arm_left','worker_arm_right','worker_leg_left','worker_leg_right'])assert(workerGltf.nodes.some(n=>n.name===name),`Worker node ${name} exists`);
+assert((await stat(resolve(root,'art/blender/worker.blend'))).size>1000);
+console.log(`Validated human crew prefab (${(worker.length/1024).toFixed(1)} KiB), native source and limb pivots.`);

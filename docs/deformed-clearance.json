@@ -1,0 +1,89 @@
+{
+  "beacon": {
+    "actualMinX": -0.9043147788873742,
+    "actualMaxX": 0.8069481451903406,
+    "oldClearanceEnvelope": 0.72
+  },
+  "report": [
+    {
+      "id": 1,
+      "routes": 10,
+      "deformedGeometryIntersections": 0
+    },
+    {
+      "id": 2,
+      "routes": 3,
+      "deformedGeometryIntersections": 0
+    },
+    {
+      "id": 3,
+      "routes": 4,
+      "deformedGeometryIntersections": 0
+    },
+    {
+      "id": 4,
+      "routes": 3,
+      "deformedGeometryIntersections": 0
+    },
+    {
+      "id": 5,
+      "routes": 9,
+      "deformedGeometryIntersections": 0
+    },
+    {
+      "id": 6,
+      "routes": 4,
+      "deformedGeometryIntersections": 0
+    },
+    {
+      "id": 7,
+      "routes": 5,
+      "deformedGeometryIntersections": 0
+    },
+    {
+      "id": 8,
+      "routes": 3,
+      "deformedGeometryIntersections": 0
+    },
+    {
+      "id": 9,
+      "routes": 3,
+      "deformedGeometryIntersections": 0
+    },
+    {
+      "id": 10,
+      "routes": 5,
+      "deformedGeometryIntersections": 0
+    },
+    {
+      "id": 11,
+      "routes": 13,
+      "deformedGeometryIntersections": 0
+    },
+    {
+      "id": 12,
+      "routes": 4,
+      "deformedGeometryIntersections": 0
+    },
+    {
+      "id": 13,
+      "routes": 3,
+      "deformedGeometryIntersections": 0
+    },
+    {
+      "id": 14,
+      "routes": 5,
+      "deformedGeometryIntersections": 0
+    },
+    {
+      "id": 15,
+      "routes": 4,
+      "deformedGeometryIntersections": 0
+    },
+    {
+      "id": 16,
+      "routes": 12,
+      "deformedGeometryIntersections": 0
+    }
+  ]
+}
